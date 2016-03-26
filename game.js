@@ -5,7 +5,6 @@ var Game = {
     player: null,
     entities: [],
     scheduler: null,
-    currentWorld: 0,
     messages: ["Back log of messages!", "Which we should show"],
     maxHp: 15,
     visibleTiles: [],
@@ -63,8 +62,8 @@ var Game = {
             [1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1],
             [1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1],
             [1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1],
-            [1,1,1,1,1,1,1,4,4,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1],
-            [1,1,1,1,1,1,1,4,4,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,3,3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,3,3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1],
             [1,1,1,1,1,1,1,0,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,2,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1],
             [1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1],
             [1,1,1,1,1,1,1,2,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,2,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -82,17 +81,14 @@ var Game = {
         for (var y = 0; y < this.map.length; y+=1) {
             for (var x = 0; x < this.map[0].length; x+=1) {
                 var tileType = [
-                    EmptySpaceTile, WallTile, MuckTile, AppearingWallTile, IceTile
+                    EmptySpaceTile, WallTile, MuckTile, IceTile
                 ][this.map[y][x]];
                 this.map[y][x] = new tileType(x, y);
             }
         }
         this._createPlayer(20,5);
-        this._createMonster(7,7,3, Shade);
-        this._createMonster(7,5,3, Bobomb);
         this._createMonster(10,5,5, Mutant);
-        this._createMonster(30,5,5, Gargoyle);
-        this._createMonster(3,5,5, Bowyer);
+        this._createMonster(3,5,5, Ranger);
     },
 
     _createPlayer: function(x, y) {
@@ -125,15 +121,6 @@ var Game = {
         }
 
         this.getTile(x,y).draw();
-    },
-
-    // This is for drawing the player + enemies etc.
-    drawCharacterByWorld: function(x, y, chr1, fg1, bg1, chr2, fg2, bg2) {
-        if (this.currentWorld == 0) {
-            this.display.draw(x, y, chr1, fg1, bg1);
-        } else {
-            this.display.draw(x, y, chr2, fg2, bg2);
-        }
     },
 
     killMonster: function(monster) {
@@ -201,8 +188,7 @@ var Game = {
         var width = 80-56;
         var height = 25;
 
-        var worldName = this.currentWorld == 0 ? "Badlands" : "Subspace";
-        this.display.drawText(x, y, "World: " + worldName);
+        this.display.drawText(x, y, "Current Poke: Charizard");
         y+=1;
         for (var j = 0; j < width; j+=1) {
             this.display.draw(x+j, y, " ");
@@ -260,34 +246,20 @@ var Game = {
         this.messages.push(message);
         this._clearAndDrawMessageLog();
     },
-
-    swapWorld: function() {
-        this.currentWorld = this.otherWorld();
-        this._redrawMap();
-    },
-
-    otherWorld: function() {
-        return (this.currentWorld + 1)%2;
-    }
 };
 
-var Tile = function(c1,fg1,bg1,c2,fg2,bg2) {
+var Tile = function(c1,fg1,bg1) {
     this.c1 = c1;
     this.fg1 = fg1;
     this.bg1 = bg1;
-    this.c2 = c2;
-    this.fg2 = fg2;
-    this.bg2 = bg2;
 }
 Tile.prototype.trigger = function() {}
 Tile.prototype.canSeeThrough = function() {return true;}
 Tile.prototype.draw = function() {
-    Game.drawCharacterByWorld(this.x, this.y, this.c1, this.fg1, this.bg1,
-                                              this.c2, this.fg2, this.bg2);
+    Game.display.draw(this.x, this.y, this.c1, this.fg1, this.bg1);
 }
 Tile.prototype.drawFromMemory = function() {
-    Game.drawCharacterByWorld(this.x, this.y, this.c1, "#ccc", "#222",
-                                              this.c2, "#222", "#ccc");
+    Game.display.draw(this.x, this.y, this.c1, "#ccc", "#222");
 }
 
 var EmptySpaceTile = function(x,y) {
@@ -295,7 +267,7 @@ var EmptySpaceTile = function(x,y) {
     this.y = y;
 }
 
-EmptySpaceTile.prototype = new Tile('.', '#f99', '#000', ' ', '#000', '#99f')
+EmptySpaceTile.prototype = new Tile('.', '#f99', '#000')
 EmptySpaceTile.prototype.isWalkable = function(world) {
     return true;
 }
@@ -305,7 +277,7 @@ var WallTile = function(x,y) {
     this.y = y;
 }
 
-WallTile.prototype = new Tile('#', '#f99', '#000', 'U', '#000', '#99f')
+WallTile.prototype = new Tile('#', '#f99', '#000')
 WallTile.prototype.isWalkable = function(world) {
     return false;
 }
@@ -318,63 +290,34 @@ var MuckTile = function(x,y) {
     this.y = y;
 }
 
-MuckTile.prototype = new Tile('~', '#f99', '#922', '~', '#9f9', '#99f')
+MuckTile.prototype = new Tile('~', '#9f9', '#99f')
 MuckTile.prototype.isWalkable = function(world) {
     return true;
 }
 MuckTile.prototype.trigger = function() {
-    if (Game.currentWorld == 0) {
-        Game.logMessage("the lava singes you!");
-        Game.player.takeHit(1);
-    } else {
-        Game.logMessage("You're bogged down in the slime!")
-        Game.player.delay += 1;
-    }
+    Game.logMessage("You're bogged down in the slime!")
+    Game.player.delay += 1;
 }
 
-
-var AppearingWallTile = function(x,y) {
-    this.x = x;
-    this.y = y;
-}
-
-AppearingWallTile.prototype = new Tile('_', '#555', '#000',' ', '#fff', '#222')
-AppearingWallTile.prototype.isWalkable = function(world) {
-    if (world === undefined) {
-        world = Game.currentWorld;
-    }
-    return world == 0;
-}
 
 var IceTile = function(x, y) {
     this.x = x;
     this.y = y;
 }
 
-IceTile.prototype = new Tile(' ', '#599', '#fff', '_', '#244', '#599')
+IceTile.prototype = new Tile('_', '#244', '#599')
 IceTile.prototype.isWalkable = function(world) {
     return true;
 }
 
 IceTile.prototype.trigger = function() {
-    if (Game.currentWorld == 0) {
-        Game.logMessage("You're encased in a cloud of steam!");
-    } else {
-        Game.logMessage("You slide on the ice. But not really.")
-    }
-}
-IceTile.prototype.canSeeThrough = function() {
-    return Game.currentWorld == 1;
+    Game.logMessage("You slide on the ice. But not really.")
 }
 
-
-var ThingInATile = function(c1,fg1,bg1,c2,fg2,bg2) {
+var ThingInATile = function(c1,fg1,bg1) {
     this.c1 = c1;
     this.fg1 = fg1;
     this.bg1 = bg1;
-    this.c2 = c2;
-    this.fg2 = fg2;
-    this.bg2 = bg2;
 }
 
 // Don't call this on player! lul
@@ -418,28 +361,22 @@ ThingInATile.prototype.die = function() {
 ThingInATile.prototype.draw = function() {
     // if (Game._canSee(this._x, this._y)) {
         console.log("can see!", this);
-        Game.drawCharacterByWorld(this._x, this._y, this.c1, this.fg1, this.bg1,
-                                                    this.c2, this.fg2, this.bg2);
+        Game.display.draw(this._x, this._y, this.c1, this.fg1, this.bg1);
     // } else {
         // console.log('can"t see')
     // }
 }
 
 var Mutant = function(x, y, hp) { this._x = x; this._y = y; this._hp = hp; }
-Mutant.prototype = new ThingInATile("m", "#fff", "#000", "M", "#000", "#fff");
+Mutant.prototype = new ThingInATile("M", "#000", "#fff");
 
 Mutant.prototype.act = function() {
     var path = Game.findPathTo(Game.player, this);
     if (path.length <= 1) {
         //No path! Ignore
     } else if (path.length == 2) {
-        if (Game.currentWorld == 0) {
-            Game.logMessage("The wimpy monster hits you!");
-            Game.player.takeHit(1);
-        } else {
-            Game.logMessage("The massive mutant hits you!");
-            Game.player.takeHit(2);
-        }
+        Game.logMessage("The massive mutant hits you!");
+        Game.player.takeHit(2);
     } else {
         this.stepTowardsPlayer(path);
     }
@@ -449,175 +386,25 @@ Mutant.prototype.name = function() {
     return "Mutant";
 }
 
-var Shade = function(x, y, hp) { this._x = x; this._y = y; this._hp = hp; }
-Shade.prototype = new ThingInATile("_", "#fff", "#000", "S", "#000", "#fff");
+var Ranger = function(x, y, hp) { this._x = x; this._y = y; this._hp = hp; }
+Ranger.prototype = new ThingInATile("}", "#39a", "#222");
 
-Shade.prototype.act = function() {
+Ranger.prototype.act = function() {
+    var range = 5;
     var path = Game.findPathTo(Game.player, this);
     if (path.length <= 1) {
         //No path! Ignore
-    } else if (path.length == 2) {
-        if (Game.currentWorld == 0) {
-            Game.logMessage("Something hits you");
-            Game.player.takeHit(2);
-        } else {
-            Game.logMessage("The shade hits you!");
-            Game.player.takeHit(1);
-        }
-    } else {
-        this.stepTowardsPlayer(path);
-    }
-}
-
-Shade.prototype.draw = function() {
-    if (Game.currentWorld == 1) {
-        return ThingInATile.prototype.draw.call(this);
-    } else {
-        Game.getTile(this._x, this._y).draw();
-    }
-}
-
-Shade.prototype.name = function() {
-    return "Shade";
-}
-
-var Gargoyle = function(x, y, hp) { this._x = x; this._y = y; this._hp = hp; }
-Gargoyle.prototype = new ThingInATile("o", "#333", "#aaa", "8", "#aaa", "#333");
-Gargoyle.prototype.act = function() {
-    if (Game.currentWorld == 1) {
-        return;
-    }
-    var path = Game.findPathTo(Game.player, this);
-
-    if (path.length <= 1) {
-        //No path! Ignore
-    } else if (path.length == 2) {
-        Game.logMessage("The Gargoyle hits you");
+    } else if (path.length <= range+1) {
+        Game.logMessage("The Ranger shoots an arrow at you from afar!");
         Game.player.takeHit(1);
     } else {
         this.stepTowardsPlayer(path);
     }
 }
 
-Gargoyle.prototype.takeHit = function(damage) {
-    if (Game.currentWorld == 0) {
-        return ThingInATile.prototype.takeHit.call(this, damage);
-    } else {
-        Game.logMessage("Hitting the statue does nothing.");
-    }
+Ranger.prototype.name = function() {
+    return "Ranger";
 }
-
-Gargoyle.prototype.name = function() {
-    return "Gargoyle";
-}
-
-var Bowyer = function(x, y, hp) { this._x = x; this._y = y; this._hp = hp; }
-Bowyer.prototype = new ThingInATile("}", "#39a", "#222", ")", "#a93", "#222");
-
-Bowyer.prototype.act = function() {
-    var range = (Game.currentWorld == 1) ? 1 : 5;
-    var path = Game.findPathTo(Game.player, this);
-    if (path.length <= 1) {
-        //No path! Ignore
-    } else if (path.length <= range+1) {
-        if (Game.currentWorld == 0) {
-            Game.logMessage("The Bowyer shoots an arrow at you from afar!");
-            Game.player.takeHit(1);
-        } else {
-            Game.logMessage("The Bowyer hits you w/ his bow");
-            Game.player.takeHit(1);
-        }
-    } else {
-        this.stepTowardsPlayer(path);
-    }
-}
-
-Bowyer.prototype.name = function() {
-    return "Bowyer";
-}
-
-var Bobomb = function(x, y, hp) { this._x = x; this._y = y; this._hp = hp; this.countdown = 5;}
-Bobomb.prototype = new ThingInATile("*", "#f22", "#000",  "*", "#f22", "#000");
-Bobomb.prototype.act = function() {
-    if (this.countdown > 0) {
-        this.countdown -= 1;
-    }
-    if (this.countdown == 0) {
-        this.explode();
-        return;
-    }
-
-    var dx = Game.player._x - this._x;
-    var dy = Game.player._y - this._y;
-
-    var mult = Game.currentWorld == 0 ? -1 : 1;
-    var choices = [
-        [dx/Math.abs(dx)*mult, 0],
-        [0, dy/Math.abs(dy)*mult],
-    ]
-    // Reverse our order
-    if (Math.abs(dy) > Math.abs(dx)) {
-        choices = [choices[1], choices[0]];
-    }
-    for (var i = 0; i < choices.length; i += 1) {
-        var targetX = this._x+choices[i][0];
-        var targetY = this._y+choices[i][1];
-        if (!(isNaN(targetX) || isNaN(targetY)) && Game.getTile(targetX, targetY).isWalkable()) {
-            this.moveInstantlyToAndRedraw(targetX, targetY);
-            return;
-        }
-    }
-    // Uh oh, we're stuck!
-}
-
-Bobomb.prototype.explode = function() {
-    Game.engine.lock();
-    var that = this;
-    var delays = [100,200,300]
-    for (var i = 0; i < 3; i+=1) {
-        setTimeout(function() {
-            that.displayExplosion();
-        }, delays[i]);
-    }
-    setTimeout(function() {
-        that.die();
-        for (var x = -1; x < 2; x += 1) {
-            for (var y = -1; y < 2; y += 1) {
-                var monst = Game.monsterAt(that._x + x, that._y + y);
-                if (monst !== undefined) {
-                    Game.logMessage("The " + monst.name() + " is caught in the explosion!");
-                    monst.takeHit(7);
-                }
-            }
-        }
-        Game._redrawMap();
-        Game.engine.unlock();
-    }, 400);
-}
-
-Bobomb.prototype.displayExplosion = function() {
-    for (var x = -1; x < 2; x += 1) {
-        for (var y = -1; y < 2; y += 1) {
-            fgcolor = ROT.Color.toRGB([
-                Math.floor(Math.random()*50) + 200,
-                Math.floor(Math.random()*50),
-                Math.floor(Math.random()*50)
-            ]);
-            bgcolor = ROT.Color.toRGB([
-                Math.floor(Math.random()*50) + 150,
-                Math.floor(Math.random()*25),
-                Math.floor(Math.random()*25)
-            ]);
-            Game.drawCharacterByWorld(this._x+x, this._y+y, "*", fgcolor, bgcolor,
-                                                            "*", fgcolor, bgcolor);
-        }
-    }
-}
-
-Bobomb.prototype.name = function() {
-    return "Bobomb";
-}
-
 
 var Player = function(x, y, hp) {
     this._x = x;
@@ -715,8 +502,7 @@ Player.prototype._doAttack = function(monster) {
 }
 
 Player.prototype._draw = function() {
-    Game.drawCharacterByWorld(this._x, this._y, "@", "#fff", "#000",
-                                                "@", "#000", "#fff");
+    Game.display.draw(this._x, this._y, "@", "#fff", "#000");
 }
 
 Player.prototype.finishTurn = function() {
