@@ -6,7 +6,6 @@ var Game = {
     entities: [],
     scheduler: null,
     messages: ["Back log of messages!", "Which we should show"],
-    maxHp: 15,
     visibleTiles: [],
     seenTiles: {},
 
@@ -92,7 +91,7 @@ var Game = {
     },
 
     _createPlayer: function(x, y) {
-        this.player = new Player(x, y, this.maxHp);
+        this.player = new Player(x, y);
         this.entities.push(this.player);
         this.scheduler.add(this.player, true);
     },
@@ -152,7 +151,7 @@ var Game = {
     _redrawMap: function() {
         this._calculateFOV();
         this._drawWholeMap();
-        this.player._draw();
+        this.player.draw();
     },
 
     _canSee: function(x,y) {
@@ -188,17 +187,18 @@ var Game = {
         var width = 80-56;
         var height = 25;
 
-        this.display.drawText(x, y, "Current Poke: Charizard");
+        this._clearUIRow(x,y, width)
+        this.display.drawText(x, y, "Current Poke: " + this.player.currentMon.getName());
         y+=1;
-        for (var j = 0; j < width; j+=1) {
-            this.display.draw(x+j, y, " ");
-        }
 
-        this.display.drawText(x, y, "" + this.player._hp + "/" + this.maxHp);
+        this._clearUIRow(x,y, width)
+        this.display.drawText(x, y, "" + this.player.getHp() + "/" + this.player.getMaxHp());
         y+=1;
-        this._drawMeter(x, y, this.player._hp, this.maxHp, "Hp");
+
+        this._clearUIRow(x,y, width)
+        this._drawMeter(x, y, this.player.getHp(), this.player.getMaxHp(), "Hp");
         y+=1;
-        this._drawMeter(x, y, this.player.sickness, 5, "sickness");
+        y+=1;
         y+=1;
         y+=1;
         y+=1;
@@ -215,6 +215,12 @@ var Game = {
             Array(current+1).join("=") +
             Array(max - current + 1).join(" ") +
             "]", "#000", "#000");
+    },
+
+    _clearUIRow: function(x, y, width) {
+        for (var j = 0; j < width; j+=1) {
+            this.display.draw(x+j, y, " ");
+        }
     },
 
     _clearAndDrawMessageLog: function() {
@@ -359,12 +365,7 @@ ThingInATile.prototype.die = function() {
 }
 
 ThingInATile.prototype.draw = function() {
-    // if (Game._canSee(this._x, this._y)) {
-        console.log("can see!", this);
-        Game.display.draw(this._x, this._y, this.c1, this.fg1, this.bg1);
-    // } else {
-        // console.log('can"t see')
-    // }
+    Game.display.draw(this._x, this._y, this.c1, this.fg1, this.bg1);
 }
 
 var Mutant = function(x, y, hp) { this._x = x; this._y = y; this._hp = hp; }
@@ -406,15 +407,43 @@ Ranger.prototype.name = function() {
     return "Ranger";
 }
 
-var Player = function(x, y, hp) {
+var Mon = function(char, fg, bg, name, hp, moves) {
+    this._char = char;
+    this._fg = fg;
+    this._bg = bg;
+    this._name = name;
+    this._hp = hp;
+    this._maxHp = hp;
+    this.moves = moves;
+}
+Mon.prototype.drawAt = function(x, y) {
+    Game.display.draw(x, y, this._char, this._fg, this._bg);
+}
+Mon.prototype.getName = function() {
+    return this._name;
+}
+
+var Player = function(x, y) {
     this._x = x;
     this._y = y;
-    this._hp = hp;
+
+    this.mons = [
+        new Mon("C", '#c55', '#000', "Charizard", 15, []),
+        new Mon("s", '#aaf', '#000', "Squirtle",  5, []),
+    ]
+
+    this.currentMon = this.mons[0];
     this.delay = 0;
-    this.sickness = 0;
 }
 
 Player.prototype = new ThingInATile();
+
+Player.prototype.getHp = function() {
+    return this.currentMon._hp;
+}
+Player.prototype.getMaxHp = function() {
+    return this.currentMon._maxHp;
+}
 
 Player.prototype.act = function() {
     Game.engine.lock();
@@ -426,46 +455,20 @@ Player.prototype.act = function() {
 }
 
 Player.prototype.handleEvent = function(e) {
-    var movementKeymap = {};
-    movementKeymap[38] = 0;
-    movementKeymap[33] = 1;
-    movementKeymap[39] = 2;
-    movementKeymap[34] = 3;
-    movementKeymap[40] = 4;
-    movementKeymap[35] = 5;
-    movementKeymap[37] = 6;
-    movementKeymap[36] = 7;
+    var movementKeymap = { 38: 0, 33: 1, 39: 2, 34: 3, 40: 4, 35: 5, 37: 6, 36: 7, };
+    var swapMonKeymap = { 49: 0, 50: 1, 51: 2, 53: 3, 54: 4, 55: 5, }
 
     var code = e.keyCode;
     /* one of numpad directions? */
-    if ((code in movementKeymap)) {
+    if (code in movementKeymap) {
         event.preventDefault()
         this._attemptMovement(ROT.DIRS[8][movementKeymap[code]]);
+    } else if (code in swapMonKeymap) {
+        this._attemptToSwap(swapMonKeymap[code]);
     } else if (e.keyCode == 190) {
         // . (wait)
         this.finishTurn()
-    } else if (e.keyCode == 32) {
-        event.preventDefault()
-        // Spacebar (worldswap)
-        if (!this.canSwapWorldHere()) {
-            Game.logMessage("You're unable to phase to the other world in this location.")
-            return;
-        } else if (!this.readyToSwap()) {
-            Game.logMessage("You're still recovering from your last swap.")
-            return;
-        }
-        Game.swapWorld();
-        this.sickness = 6;
-        this.finishTurn();
     }
-}
-
-Player.prototype.canSwapWorldHere = function() {
-    return Game.getTile(this._x, this._y).isWalkable(Game.otherWorld());
-}
-
-Player.prototype.readyToSwap = function() {
-    return this.sickness == 0;
 }
 
 Player.prototype._attemptMovement = function(dir) {
@@ -481,6 +484,18 @@ Player.prototype._attemptMovement = function(dir) {
     }
 }
 
+Player.prototype._attemptToSwap = function(slot) {
+    if (this.mons[slot] !== undefined && this.currentMon != this.mons[slot]) {
+        Game.logMessage("Alright! Come back, " + this.currentMon.getName() + "!");
+        this.currentMon = this.mons[slot];
+        Game.logMessage("Go!" +  this.currentMon.getName() + "!");
+        Game._redrawMap();
+        this.finishTurn();
+    } else if (this.mons[slot] == currentMon) {
+        Game.logMessage(this.currentMon.getName()  + " is already out!");
+    }
+}
+
 Player.prototype._doMovement = function(newX, newY) {
     this._x = newX;
     this._y = newY;
@@ -490,25 +505,24 @@ Player.prototype._doMovement = function(newX, newY) {
 }
 
 Player.prototype.takeHit = function(damage) {
-    var rtn = ThingInATile.prototype.takeHit.call(this, damage);
+    var rtn = ThingInATile.prototype.takeHit.call(this.currentMon, damage);
     Game._drawUI();
     return rtn;
 }
 
 Player.prototype._doAttack = function(monster) {
+    // TODO woop
     monster.takeHit(1);
     Game.logMessage("You hit the "+monster.name()+"!");
     this.finishTurn();
 }
 
-Player.prototype._draw = function() {
-    Game.display.draw(this._x, this._y, "@", "#fff", "#000");
+Player.prototype.draw = function() {
+    console.log('drawing');
+    console.log(this.currentMon.drawAt(this._x, this._y));
 }
 
 Player.prototype.finishTurn = function() {
-    if (this.sickness > 0) {
-        this.sickness -= 1;
-    }
     Game._drawUI();
     window.removeEventListener("keydown", this);
     Game.engine.unlock();
