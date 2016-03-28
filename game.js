@@ -361,6 +361,7 @@ ThingInATile.prototype.takeHit = function(damage) {
 }
 
 ThingInATile.prototype.die = function() {
+    Game.logMessage(this.name() + " dies");
     Game.killMonster(this);
 }
 
@@ -407,6 +408,82 @@ Ranger.prototype.name = function() {
     return "Ranger";
 }
 
+var FlameThrower = function() {
+    this.selectedDirection = undefined;
+};
+
+FlameThrower.prototype.targets = function(x, y) {
+    var targetted = [];
+    // 4 directions
+    for (directionIndex = 0; directionIndex < 4; directionIndex+=1) {
+        targetted[directionIndex] = [];
+
+        var offsetX = ROT.DIRS[4][directionIndex][0];
+        var offsetY = ROT.DIRS[4][directionIndex][1];
+        var failure = false;
+        for (var i = 1; i < 4; i+=1) {
+            if (!failure) {
+                var cX = x + offsetX*i;
+                var cY = y + offsetY*i;
+                if (Game.getTile(cX, cY).isWalkable()) {
+                    targetted[directionIndex].push([cX, cY]);
+                } else {
+                    failure = true;
+                }
+            }
+        }
+    }
+    return targetted;
+}
+
+// Draw while targetting
+// Flamethrower.
+FlameThrower.prototype.draw = function(player) {
+    var targets = this.targets(player._x,player._y);
+    for (var i = 0; i < targets.length; i+=1){
+        var drawColor = "#aaa"
+        if (i == this.selectedDirection) {
+            drawColor = "#faa";
+        }
+        var currentList = targets[i]
+        for (var d in currentList) {
+            var dx = currentList[d][0];
+            var dy = currentList[d][1];
+            Game.display.draw(dx, dy, "*", drawColor, "#333");
+        }
+    }
+}
+FlameThrower.prototype.handleEvent = function(player, e) {
+    var movementKeymap = { 38: 0, 39: 1, 40: 2, 37: 3, }
+    var code = e.keyCode;
+
+    if (code in movementKeymap) {
+        this.selectedDirection = movementKeymap[code];
+    } else if (code == 13 && this.selectedDirection !== undefined) {
+        // Actually do the attack!
+        console.log("jsdf")
+        this.enact(player);
+    } else {
+        player.delegates = [];
+    }
+    Game._redrawMap()
+}
+
+FlameThrower.prototype.enact = function(player) {
+    var locationHit = this.targets(player._x, player._y)[this.selectedDirection];
+    for (var i = 0; i < locationHit.length; i += 1) {
+        var x = locationHit[i][0];
+        var y = locationHit[i][1];
+        var monster = Game.monsterAt(x,y);
+        if (monster !== undefined) {
+            Game.logMessage(monster.name() + " is burned!");
+            monster.takeHit(3);
+            // Finally, finish turn.
+        }
+    }
+    player.finishTurn();
+}
+
 var Mon = function(char, fg, bg, name, hp, moves) {
     this._char = char;
     this._fg = fg;
@@ -428,15 +505,23 @@ var Player = function(x, y) {
     this._y = y;
 
     this.mons = [
-        new Mon("C", '#c55', '#000', "Charizard", 15, []),
+        new Mon("C", '#c55', '#000', "Charizard", 15, [
+            FlameThrower,
+        ]),
         new Mon("s", '#aaf', '#000', "Squirtle",  5, []),
     ]
 
     this.currentMon = this.mons[0];
     this.delay = 0;
+
+    this.delegates = [];
 }
 
 Player.prototype = new ThingInATile();
+
+Player.prototype._currentDelegate = function() {
+    return this.delegates[this.delegates.length-1];
+}
 
 Player.prototype.getHp = function() {
     return this.currentMon._hp;
@@ -455,16 +540,29 @@ Player.prototype.act = function() {
 }
 
 Player.prototype.handleEvent = function(e) {
-    var movementKeymap = { 38: 0, 33: 1, 39: 2, 34: 3, 40: 4, 35: 5, 37: 6, 36: 7, };
-    var swapMonKeymap = { 49: 0, 50: 1, 51: 2, 53: 3, 54: 4, 55: 5, }
+    if (this._currentDelegate() === undefined) {
+        return this.makeMove(e);
+    } else {
+        // console.log(this._currentDelegate());
+        return this._currentDelegate().handleEvent(this, e);
+    }
+}
+
+Player.prototype.makeMove = function(e) {
+    // var movementKeymap = { 38: 0, 33: 1, 39: 2, 34: 3, 40: 4, 35: 5, 37: 6, 36: 7, };
+    var movementKeymap = { 38: 0, 39: 1, 40: 2, 37: 3, }
+    var swapMonKeymap = { 49: 0, 50: 1, 51: 2, 53: 3, 54: 4, 55: 5, };
+    var attackKeymap = { 81: 0, 87: 1, 69: 2, 82: 3, };
 
     var code = e.keyCode;
     /* one of numpad directions? */
     if (code in movementKeymap) {
         event.preventDefault()
-        this._attemptMovement(ROT.DIRS[8][movementKeymap[code]]);
+        this._attemptMovement(ROT.DIRS[4][movementKeymap[code]]);
     } else if (code in swapMonKeymap) {
         this._attemptToSwap(swapMonKeymap[code]);
+    } else if (code in attackKeymap) {
+        this._attemptToSelectAttack(attackKeymap[code]);
     } else if (e.keyCode == 190) {
         // . (wait)
         this.finishTurn()
@@ -484,6 +582,11 @@ Player.prototype._attemptMovement = function(dir) {
     }
 }
 
+Player.prototype._attemptToSelectAttack = function(attackIndex) {
+    this.delegates.push(new this.currentMon.moves[attackIndex]());
+    Game._redrawMap();
+}
+
 Player.prototype._attemptToSwap = function(slot) {
     if (this.mons[slot] !== undefined && this.currentMon != this.mons[slot]) {
         Game.logMessage("Alright! Come back, " + this.currentMon.getName() + "!");
@@ -491,7 +594,7 @@ Player.prototype._attemptToSwap = function(slot) {
         Game.logMessage("Go!" +  this.currentMon.getName() + "!");
         Game._redrawMap();
         this.finishTurn();
-    } else if (this.mons[slot] == currentMon) {
+    } else if (this.mons[slot] == this.currentMon) {
         Game.logMessage(this.currentMon.getName()  + " is already out!");
     }
 }
@@ -518,12 +621,15 @@ Player.prototype._doAttack = function(monster) {
 }
 
 Player.prototype.draw = function() {
-    console.log('drawing');
-    console.log(this.currentMon.drawAt(this._x, this._y));
+    this.currentMon.drawAt(this._x, this._y);
+    if (this._currentDelegate() !== undefined) {
+        this._currentDelegate().draw(this);
+    }
 }
 
 Player.prototype.finishTurn = function() {
     Game._drawUI();
+    this.delegates = [];
     window.removeEventListener("keydown", this);
     Game.engine.unlock();
 }
