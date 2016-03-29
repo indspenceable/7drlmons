@@ -87,7 +87,6 @@ var Game = {
         }
         this._createPlayer(20,5);
         this._createMonster(10,5,5, Mutant);
-        this._createMonster(3,5,5, Ranger);
     },
 
     _createPlayer: function(x, y) {
@@ -114,7 +113,6 @@ var Game = {
         }
         var m = this.monsterAt(x,y);
         if (m !== undefined) {
-            console.log("we ended up drawing", m);
             m.draw();
             return;
         }
@@ -461,7 +459,6 @@ FlameThrower.prototype.handleEvent = function(player, e) {
         this.selectedDirection = movementKeymap[code];
     } else if (code == 13 && this.selectedDirection !== undefined) {
         // Actually do the attack!
-        console.log("jsdf")
         this.enact(player);
     } else {
         player.delegates = [];
@@ -543,7 +540,6 @@ Player.prototype.handleEvent = function(e) {
     if (this._currentDelegate() === undefined) {
         return this.makeMove(e);
     } else {
-        // console.log(this._currentDelegate());
         return this._currentDelegate().handleEvent(this, e);
     }
 }
