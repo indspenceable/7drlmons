@@ -5,7 +5,7 @@ var Game = {
     player: null,
     entities: [],
     scheduler: null,
-    messages: ["Back log of messages!", "Which we should show"],
+    messages: [],
     visibleTiles: [],
     seenTiles: {},
 
