@@ -107,7 +107,7 @@ var Game = {
             if (this._hasSeen(x,y)) {
                 this.getTile(x,y).drawFromMemory();
             } else {
-                this.display.draw(x,y,"/");
+                this.display.draw(x,y," ");
             }
             return;
         }
@@ -160,13 +160,19 @@ var Game = {
     },
 
     _calculateFOV: function() {
+        varRadius = 10;
+        var player = this.player;
+
+        var noBlock = function(x,y) {
+            return Math.abs(player._x - x) + Math.abs(player._y - y) < varRadius;
+        }
         var lightPasses = function(x,y) {
             var tile = Game.getTile(x,y);
             return tile !== undefined && tile.canSeeThrough();
         }
         var fov = new ROT.FOV.PreciseShadowcasting(lightPasses);
         this.visibleTiles = [];
-        fov.compute(this.player._x, this.player._y, 5, function(x,y,r,canSee) {
+        fov.compute(this.player._x, this.player._y, varRadius, function(x,y,r,canSee) {
             Game.visibleTiles[[x,y]] = true;
             Game.seenTiles[[x,y]] = true;
         });
@@ -281,7 +287,7 @@ var WallTile = function(x,y) {
     this.y = y;
 }
 
-WallTile.prototype = new Tile('#', '#f99', '#000')
+WallTile.prototype = new Tile('#', '#999', '#000')
 WallTile.prototype.isWalkable = function(world) {
     return false;
 }
