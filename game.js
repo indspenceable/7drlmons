@@ -237,9 +237,11 @@ var Game = {
 
     displayMove: function(x, y, label, move) {
         if (move !== undefined) {
-            console.log(move);
-            this.display.drawText(x, y, label +
+            var defaultMelee = this.player.defaultMeleeAttack();
+            this.display.drawText(x, y,
+                label +
                 ") " +
+                (move === defaultMelee ? '*' : ' ') +
                 move.name() +
                 " (" +
                 move.pp +

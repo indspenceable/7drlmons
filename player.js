@@ -58,7 +58,7 @@ Player.prototype.makeMove = function(e) {
     /* one of numpad directions? */
     if (code in movementKeymap) {
         event.preventDefault()
-        this._attemptMovement(ROT.DIRS[4][movementKeymap[code]]);
+        this._attemptMovement(movementKeymap[code]);
     } else if (code in swapMonKeymap) {
         this._attemptToSwap(swapMonKeymap[code]);
     } else if (code in attackKeymap) {
@@ -69,14 +69,15 @@ Player.prototype.makeMove = function(e) {
     }
 }
 
-Player.prototype._attemptMovement = function(dir) {
+Player.prototype._attemptMovement = function(dirIndex) {
+    var dir = ROT.DIRS[4][dirIndex];
     /* is there a free space? */
     var newX = this._x + dir[0];
     var newY = this._y + dir[1];
 
     var monster = Game.monsterAt(newX, newY)
     if (monster !== undefined) {
-        this._doAttack(monster);
+        this._doAttack(dirIndex, monster);
     } else if (Game.getTile(newX, newY).isWalkable()) {
         this._doMovement(newX, newY)
     }
@@ -120,11 +121,23 @@ Player.prototype.takeHit = function(damage) {
     return rtn;
 }
 
-Player.prototype._doAttack = function(monster) {
+Player.prototype.defaultMeleeAttack = function() {
+    for (var i = 0; i < this.currentMon.moves.length; i+=1) {
+        var move = this.currentMon.moves[i];
+        if (move.isMelee === true && move.pp > 0) {
+            return move;
+        }
+    }
+}
+
+Player.prototype._doAttack = function(direction, monster) {
     // TODO woop
-    monster.takeHit(1);
-    Game.logMessage("You hit the "+monster.name()+"!");
-    this.finishTurn();
+    var move = this.defaultMeleeAttack();
+    if (move !== undefined) {
+        move.selectedDirection = direction;
+        move.enact(this);
+        return;
+    }
 }
 
 Player.prototype.draw = function() {

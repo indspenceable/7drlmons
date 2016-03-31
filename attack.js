@@ -73,7 +73,6 @@ DirectionalAttack.prototype.draw = function(player) {
         }
     }
 }
-
 var AOEAttack = function(distance) {
     this.radius = distance;
 };
@@ -135,7 +134,6 @@ EarthQuake.prototype = new AOEAttack(2);
 EarthQuake.prototype.animate = function(player, callback) {
     // Duplicate array, then randomize order.
     var locationsHit = this.targets(player).slice(0).randomize();
-    console.log(locationsHit)
     var delay = 200;
     var scaledTimeout = function(i, cb) {
         setTimeout(function(){ cb(i) }, i*delay);
@@ -198,6 +196,7 @@ FlameThrower.prototype.name = function() {return "FlameThrower";}
 var Slash = function() {
     this.maxPP = 15;
     this.pp = this.maxPP;
+    this.isMelee = true;
 };
 Slash.prototype = new DirectionalAttack(1, true);
 Slash.prototype.animate = function(player, callback) {
