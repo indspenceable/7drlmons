@@ -72,6 +72,91 @@ DirectionalAttack.prototype.draw = function(player) {
     }
 }
 
+var AOEAttack = function(distance) {
+    this.radius = distance;
+};
+AOEAttack.prototype.handleEvent = function(player, e) {
+    var code = e.keyCode;
+    if (code == 13) {
+        // Actually do the attack!
+        this.enact(player);
+    } else {
+        player.delegates = [];
+    }
+    Game._redrawMap()
+}
+AOEAttack.prototype.targets = function(player){
+    // list of x,y pairs
+    var list = [];
+    for (var a = -this.radius; a < this.radius+1; a+=1) {
+        for (var b = -this.radius; b < this.radius+1; b+=1) {
+            if (Math.abs(a) + Math.abs(b) <= this.radius && (a != 0 || b != 0))
+            list.push([player._x + a, player._y + b]);
+        }
+    }
+    return list;
+}
+AOEAttack.prototype.enact = function(player) {
+    player.delegates.push({
+        handleEvent: function() {},
+        draw: function() {},
+    })
+    var that = this;
+    this.animate(player, function() {
+        var locationsHit = this.targets(player)
+        for (var i = 0; i < locationsHit.length; i += 1) {
+            var x = locationsHit[i][0];
+            var y = locationsHit[i][1];
+            this.hitSpace(x,y);
+        }
+        Game._redrawMap();
+        player.finishTurn();
+    });
+}
+AOEAttack.prototype.draw = function(player) {
+    var targets = this.targets(player);
+    for (var i = 0; i < targets.length; i+=1){
+        var drawColor = "#eee";
+        var dx = targets[i][0];
+        var dy = targets[i][1];
+        Game.display.draw(dx, dy, "*", drawColor, "#333");
+    }
+}
+
+var EarthQuake = function() {};
+EarthQuake.prototype = new AOEAttack(2);
+EarthQuake.prototype.animate = function(player, callback) {
+    // Duplicate array, then randomize order.
+    var locationsHit = this.targets(player).slice(0).randomize();
+    console.log(locationsHit)
+    var delay = 200;
+    var scaledTimeout = function(i, cb) {
+        setTimeout(function(){ cb(i) }, i*delay);
+    }
+
+    for (var s = 0; s < 8; s += 1) {
+        scaledTimeout(s, function(c){
+            if (c%2 == 0) {
+                Game._redrawMap();
+            } else {
+                for (var i = 0; i < locationsHit.length; i += 1) {
+                    var x = locationsHit[i][0];
+                    var y = locationsHit[i][1];
+                    Game.display.draw(x,y, '~', '#c90', '#752');
+                }
+            }
+        });
+    }
+    scaledTimeout(locationsHit.length + 1, callback.bind(this));
+}
+EarthQuake.prototype.hitSpace = function(x,y) {
+    var monster = Game.monsterAt(x,y);
+    if (monster !== undefined) {
+        Game.logMessage(monster.name() + " is hit!");
+        monster.takeHit(2);
+    }
+}
+
 var FlameThrower = function() {};
 FlameThrower.prototype = new DirectionalAttack(3, false);
 FlameThrower.prototype.animate = function(player, callback) {
