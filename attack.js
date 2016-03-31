@@ -1,7 +1,6 @@
 var FlameThrower = function() {
     this.selectedDirection = undefined;
 };
-
 FlameThrower.prototype.targets = function(x, y) {
     var targetted = [];
     // 4 directions
@@ -25,7 +24,6 @@ FlameThrower.prototype.targets = function(x, y) {
     }
     return targetted;
 }
-
 FlameThrower.prototype.draw = function(player) {
     var targets = this.targets(player._x,player._y);
     for (var i = 0; i < targets.length; i+=1){
@@ -55,18 +53,41 @@ FlameThrower.prototype.handleEvent = function(player, e) {
     }
     Game._redrawMap()
 }
+FlameThrower.prototype.animate = function(player, callback) {
+    var locationHit = this.targets(player._x, player._y)[this.selectedDirection];
+    var delay = 100;
+    var scaledTimeout = function(i, cb) {
+        setTimeout(function(){ cb(i) }, i*delay);
+    }
+    for (var i = 0; i < locationHit.length; i += 1) {
+        scaledTimeout(i, function(c){
+            var x = locationHit[c][0];
+            var y = locationHit[c][1];
+            Game.display.draw(x,y, '#', '#F00', '#000');
+        });
+    }
+    scaledTimeout(locationHit.length + 1, callback.bind(this));
+}
 
 FlameThrower.prototype.enact = function(player) {
-    var locationHit = this.targets(player._x, player._y)[this.selectedDirection];
-    for (var i = 0; i < locationHit.length; i += 1) {
-        var x = locationHit[i][0];
-        var y = locationHit[i][1];
-        var monster = Game.monsterAt(x,y);
-        if (monster !== undefined) {
-            Game.logMessage(monster.name() + " is burned!");
-            monster.takeHit(3);
-            // Finally, finish turn.
+    player.delegates.push({
+        handleEvent: function() {},
+        draw: function() {},
+    })
+    var that = this;
+    this.animate(player, function() {
+        var locationHit = this.targets(player._x, player._y)[this.selectedDirection];
+        for (var i = 0; i < locationHit.length; i += 1) {
+            var x = locationHit[i][0];
+            var y = locationHit[i][1];
+            var monster = Game.monsterAt(x,y);
+            if (monster !== undefined) {
+                Game.logMessage(monster.name() + " is burned!");
+                monster.takeHit(3);
+                // Finally, finish turn.
+            }
         }
-    }
-    player.finishTurn();
+        Game._redrawMap();
+        player.finishTurn();
+    });
 }
