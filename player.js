@@ -5,9 +5,9 @@ var Player = function(x, y) {
 
     this.mons = [
         new Mon("C", '#c55', '#000', "Charizard", 15, [
-            FlameThrower,
-            Slash,
-            EarthQuake,
+            new FlameThrower(),
+            new Slash(),
+            new EarthQuake(),
         ]),
         new Mon("s", '#aaf', '#000', "Squirtle",  5, []),
     ]
@@ -83,7 +83,7 @@ Player.prototype._attemptMovement = function(dir) {
 }
 
 Player.prototype._attemptToSelectAttack = function(attackIndex) {
-    this.delegates.push(new this.currentMon.moves[attackIndex]());
+    this.delegates.push(this.currentMon.moves[attackIndex]);
     Game._redrawMap();
 }
 
