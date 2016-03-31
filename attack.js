@@ -1,5 +1,6 @@
-var DirectionalAttack = function(dist) {
+var DirectionalAttack = function(dist, targetWalls) {
     this.dist = dist;
+    this.targetWalls = targetWalls;
 }
 DirectionalAttack.prototype.handleEvent = function(player, e) {
     var movementKeymap = { 38: 0, 39: 1, 40: 2, 37: 3, }
@@ -28,7 +29,7 @@ DirectionalAttack.prototype.targets = function(x, y) {
             if (!failure) {
                 var cX = x + offsetX*i;
                 var cY = y + offsetY*i;
-                if (Game.getTile(cX, cY).isWalkable()) {
+                if (Game.getTile(cX, cY).isWalkable() || this.targetWalls) {
                     targetted[directionIndex].push([cX, cY]);
                 } else {
                     failure = true;
@@ -72,7 +73,7 @@ DirectionalAttack.prototype.draw = function(player) {
 }
 
 var FlameThrower = function() {};
-FlameThrower.prototype = new DirectionalAttack(3);
+FlameThrower.prototype = new DirectionalAttack(3, false);
 FlameThrower.prototype.animate = function(player, callback) {
     var locationHit = this.targets(player._x, player._y)[this.selectedDirection];
     var delay = 100;
@@ -98,21 +99,25 @@ FlameThrower.prototype.hitSpace = function(x,y) {
 }
 
 var Slash = function() {};
-Slash.prototype = new DirectionalAttack(1);
+Slash.prototype = new DirectionalAttack(1, true);
 Slash.prototype.animate = function(player, callback) {
     var locationHit = this.targets(player._x, player._y)[this.selectedDirection];
     var delay = 100;
     var scaledTimeout = function(i, cb) {
         setTimeout(function(){ cb(i) }, i*delay);
     }
-    for (var i = 0; i < 3; i += 1) {
-        scaledTimeout(i, function(c){
-            var x = locationHit[0][0] + (c-1);
-            var y = locationHit[0][1] + (c-1);
-            Game.display.draw(x,y, '\\', '#fff', '#aaa');
-        });
+    if (locationHit.length > 0) {
+        for (var i = 0; i < 3; i += 1) {
+            scaledTimeout(i, function(c){
+                var x = locationHit[0][0] + (c-1);
+                var y = locationHit[0][1] + (c-1);
+                Game.display.draw(x,y, '\\', '#fff', '#aaa');
+            });
+        }
+        scaledTimeout(6, callback.bind(this));
+    } else {
+        callback.bind(this)();
     }
-    scaledTimeout(6, callback.bind(this));
 }
 
 Slash.prototype.hitSpace = function(x,y) {
