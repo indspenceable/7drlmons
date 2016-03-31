@@ -53,9 +53,7 @@ DirectionalAttack.prototype.enact = function(player) {
             this.hitSpace(x,y);
         }
 
-        that.pp -= 1;
-        Game._redrawMap();
-        player.finishTurn();
+        this.finish(player);
     });
 }
 DirectionalAttack.prototype.draw = function(player) {
@@ -73,6 +71,12 @@ DirectionalAttack.prototype.draw = function(player) {
         }
     }
 }
+DirectionalAttack.prototype.finish = function(player) {
+    this.pp -= 1;
+    Game._redrawMap();
+    player.finishTurn();
+}
+
 var AOEAttack = function(distance) {
     this.radius = distance;
 };
@@ -111,9 +115,7 @@ AOEAttack.prototype.enact = function(player) {
             this.hitSpace(x,y);
         }
 
-        that.pp -= 1;
-        Game._redrawMap();
-        player.finishTurn();
+        this.finish(player);
     });
 }
 AOEAttack.prototype.draw = function(player) {
@@ -124,6 +126,11 @@ AOEAttack.prototype.draw = function(player) {
         var dy = targets[i][1];
         Game.display.draw(dx, dy, "*", drawColor, "#333");
     }
+}
+AOEAttack.prototype.finish = function(player) {
+    this.pp -= 1;
+    Game._redrawMap();
+    player.finishTurn();
 }
 
 var EarthQuake = function() {
@@ -139,9 +146,9 @@ EarthQuake.prototype.animate = function(player, callback) {
         setTimeout(function(){ cb(i) }, i*delay);
     }
 
-    for (var s = 0; s < 8; s += 1) {
+    for (var s = 0; s < 9; s += 1) {
         scaledTimeout(s, function(c){
-            if (c%2 == 0) {
+            if (c%2 == 1) {
                 Game._redrawMap();
             } else {
                 for (var i = 0; i < locationsHit.length; i += 1) {
@@ -227,3 +234,51 @@ Slash.prototype.hitSpace = function(x,y) {
     }
 }
 Slash.prototype.name = function() {return "Slash";}
+
+
+var SkullBash = function() {
+    this.maxPP = 15;
+    this.pp = this.maxPP;
+    this.isMelee = true;
+};
+SkullBash.prototype = new DirectionalAttack(1, true);
+
+SkullBash.prototype.animate = function(player, callback) {
+    var locationHit = this.targets(player._x, player._y)[this.selectedDirection];
+    var delay = 250;
+    var scaledTimeout = function(i, cb) {
+        setTimeout(function(){ cb(i) }, i*delay);
+    }
+    if (locationHit.length > 0) {
+        scaledTimeout(1, function(c){
+            for (var i = -1; i <= 1; i += 2) {
+                for (var j = -1; j <= 1; j += 2) {
+                    var x = locationHit[0][0] + (i);
+                    var y = locationHit[0][1] + (j);
+                    Game.display.draw(x,y, 'x', '#fff', '#aaa');
+                }
+            }
+        });
+        scaledTimeout(2, function(c){
+            var x = locationHit[0][0];
+            var y = locationHit[0][1];
+            Game.display.draw(x,y, 'o', '#fff', '#aaa');
+        });
+        scaledTimeout(3, callback.bind(this));
+    } else {
+        callback.bind(this)();
+    }
+}
+
+SkullBash.prototype.hitSpace = function(x,y) {
+    var monster = Game.monsterAt(x,y);
+    if (monster !== undefined) {
+        Game.logMessage(monster.name() + " is hit!!");
+        monster.takeHit(3);
+    }
+}
+SkullBash.prototype.finish = function(player) {
+    player.delay += 1;
+    this.__proto__.__proto__.finish.bind(this)(player);
+}
+SkullBash.prototype.name = function() {return "Skull Bash";}

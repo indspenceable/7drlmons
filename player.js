@@ -9,7 +9,9 @@ var Player = function(x, y) {
             new Slash(),
             new EarthQuake(),
         ]),
-        new Mon("s", '#aaf', '#000', "Squirtle",  5, []),
+        new Mon("s", '#aaf', '#000', "Squirtle",  5, [
+            new SkullBash(),
+        ]),
     ]
 
     this.currentMon = this.mons[0];
