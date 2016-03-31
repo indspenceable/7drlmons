@@ -191,21 +191,29 @@ var Game = {
         var width = 80-56;
         var height = 25;
 
-        this._clearUIRow(x,y, width)
+        this._clearUIRow(x, y, width)
         this.display.drawText(x, y, "Current Poke: " + this.player.currentMon.getName());
         y+=1;
 
-        this._clearUIRow(x,y, width)
+        this._clearUIRow(x, y, width)
         this.display.drawText(x, y, "" + this.player.getHp() + "/" + this.player.getMaxHp());
         y+=1;
 
-        this._clearUIRow(x,y, width)
+        this._clearUIRow(x, y, width)
         this._drawMeter(x, y, this.player.getHp(), this.player.getMaxHp(), "Hp");
         y+=1;
         y+=1;
+        this._clearUIRow(x, y, width)
+        this.displayMove(x, y, "q", this.player.currentMon.moves[0])
         y+=1;
+        this._clearUIRow(x, y, width)
+        this.displayMove(x, y, "w", this.player.currentMon.moves[1])
         y+=1;
+        this._clearUIRow(x, y, width)
+        this.displayMove(x, y, "e", this.player.currentMon.moves[2])
         y+=1;
+        this._clearUIRow(x, y, width)
+        this.displayMove(x, y, "r", this.player.currentMon.moves[3])
         y+=1;
         this._clearAndDrawMessageLog();
     },
@@ -224,6 +232,20 @@ var Game = {
     _clearUIRow: function(x, y, width) {
         for (var j = 0; j < width; j+=1) {
             this.display.draw(x+j, y, " ");
+        }
+    },
+
+    displayMove: function(x, y, label, move) {
+        if (move !== undefined) {
+            console.log(move);
+            this.display.drawText(x, y, label +
+                ") " +
+                move.name() +
+                " (" +
+                move.pp +
+                "/" +
+                move.maxPP +
+                ")");
         }
     },
 

@@ -52,6 +52,8 @@ DirectionalAttack.prototype.enact = function(player) {
             var y = locationHit[i][1];
             this.hitSpace(x,y);
         }
+
+        that.pp -= 1;
         Game._redrawMap();
         player.finishTurn();
     });
@@ -109,6 +111,8 @@ AOEAttack.prototype.enact = function(player) {
             var y = locationsHit[i][1];
             this.hitSpace(x,y);
         }
+
+        that.pp -= 1;
         Game._redrawMap();
         player.finishTurn();
     });
@@ -123,7 +127,10 @@ AOEAttack.prototype.draw = function(player) {
     }
 }
 
-var EarthQuake = function() {};
+var EarthQuake = function() {
+    this.maxPP = 5;
+    this.pp = this.maxPP;
+};
 EarthQuake.prototype = new AOEAttack(2);
 EarthQuake.prototype.animate = function(player, callback) {
     // Duplicate array, then randomize order.
@@ -156,8 +163,12 @@ EarthQuake.prototype.hitSpace = function(x,y) {
         monster.takeHit(2);
     }
 }
+EarthQuake.prototype.name = function() {return "EarthQuake";}
 
-var FlameThrower = function() {};
+var FlameThrower = function() {
+    this.maxPP = 5;
+    this.pp = this.maxPP;
+};
 FlameThrower.prototype = new DirectionalAttack(3, false);
 FlameThrower.prototype.animate = function(player, callback) {
     var locationHit = this.targets(player._x, player._y)[this.selectedDirection];
@@ -182,8 +193,12 @@ FlameThrower.prototype.hitSpace = function(x,y) {
         monster.takeHit(3);
     }
 }
+FlameThrower.prototype.name = function() {return "FlameThrower";}
 
-var Slash = function() {};
+var Slash = function() {
+    this.maxPP = 15;
+    this.pp = this.maxPP;
+};
 Slash.prototype = new DirectionalAttack(1, true);
 Slash.prototype.animate = function(player, callback) {
     var locationHit = this.targets(player._x, player._y)[this.selectedDirection];
@@ -212,3 +227,4 @@ Slash.prototype.hitSpace = function(x,y) {
         monster.takeHit(3);
     }
 }
+Slash.prototype.name = function() {return "Slash";}
