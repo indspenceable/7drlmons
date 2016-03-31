@@ -107,7 +107,7 @@ Player.prototype._doMovement = function(newX, newY) {
 }
 
 Player.prototype.takeHit = function(damage) {
-    var rtn = ThingInATile.prototype.takeHit.call(this.currentMon, damage);
+    var rtn = Entity.prototype.takeHit.call(this.currentMon, damage);
     Game._drawUI();
     return rtn;
 }
