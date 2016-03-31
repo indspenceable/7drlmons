@@ -83,7 +83,14 @@ Player.prototype._attemptMovement = function(dir) {
 }
 
 Player.prototype._attemptToSelectAttack = function(attackIndex) {
-    this.delegates.push(this.currentMon.moves[attackIndex]);
+    var attack = this.currentMon.moves[attackIndex];
+    if (attack === undefined) {
+        Game.logMessage(this.currentMon.getName() + " doesn't know that move!");
+    } else if (attack.pp <= 0) {
+        Game.logMessage("out of PP!");
+    } else {
+        this.delegates.push(attack);
+    }
     Game._redrawMap();
 }
 
