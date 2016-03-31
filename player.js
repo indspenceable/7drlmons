@@ -6,6 +6,7 @@ var Player = function(x, y) {
     this.mons = [
         new Mon("C", '#c55', '#000', "Charizard", 15, [
             FlameThrower,
+            Slash,
         ]),
         new Mon("s", '#aaf', '#000', "Squirtle",  5, []),
     ]
