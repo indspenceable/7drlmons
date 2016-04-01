@@ -8,10 +8,10 @@ var Player = function(x, y) {
             new FlameThrower(),
             new Slash(),
             new EarthQuake(),
-        ]),
+        ], Type.fire, Type.flying),
         new Mon("s", '#aaf', '#000', "Squirtle",  5, [
             new SkullBash(),
-        ]),
+        ], Type.water),
     ]
 
     this.currentMon = this.mons[0];
