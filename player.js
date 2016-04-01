@@ -123,6 +123,7 @@ Player.prototype.takeHit = function(damage) {
     return rtn;
 }
 
+//TODO this should live on the mon.
 Player.prototype.defaultMeleeAttack = function() {
     for (var i = 0; i < this.currentMon.moves.length; i+=1) {
         var move = this.currentMon.moves[i];

@@ -192,11 +192,12 @@ var Game = {
         var height = 25;
 
         this._clearUIRow(x, y, width)
-        this.display.drawText(x, y, "Current Poke: " + this.player.currentMon.getName());
+        this.display.drawText(x, y, "?) " + this.player.currentMon.getName());
+        this.player.currentMon.drawAt(x, y);
         y+=1;
 
         this._clearUIRow(x, y, width)
-        this.display.drawText(x, y, "" + this.player.getHp() + "/" + this.player.getMaxHp());
+        this.display.drawText(x, y, "HP: " + this.player.getHp() + "/" + this.player.getMaxHp());
         y+=1;
 
         this._clearUIRow(x, y, width)
