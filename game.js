@@ -202,6 +202,14 @@ var Game = {
 
         this._clearUIRow(x, y, width)
         this._drawMeter(x, y, this.player.getHp(), this.player.getMaxHp(), "Hp");
+
+        for (var i = 0; i < 5; i+=1) {
+            y+=1;
+            console.log("hello!", i);
+            this._clearUIRow(x,y, width);
+            this._displayMon(x, y, i, this.player.mons[i]);
+        }
+
         y+=1;
         y+=1;
         this._clearUIRow(x, y, width)
@@ -217,6 +225,20 @@ var Game = {
         this.displayMove(x, y, "r", this.player.currentMon.moves[3])
         y+=1;
         this._clearAndDrawMessageLog();
+    },
+
+    _displayMon: function(x, y, index, mon) {
+        if (mon === undefined) {
+            return;
+        }
+        if (mon === this.player.currentMon) {
+            this.display.drawText(x, y, "*)");
+        } else {
+            var str = "" + (index+1) + ")";
+            this.display.drawText(x, y, str);
+        }
+        mon.drawAt(x+3, y)
+        this.display.drawText(x+5, y, mon.getName());
     },
 
     _drawMeter: function(x, y, current, max, meterName) {
