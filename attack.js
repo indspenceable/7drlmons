@@ -173,7 +173,7 @@ EarthQuake.prototype.hitSpace = function(x,y) {
         monster.takeHit(2);
     }
 }
-EarthQuake.prototype.name = function() {return "EarthQuake";}
+EarthQuake.prototype.name = function() {return "Earth Quake";}
 
 var FlameThrower = function() {
     this.maxPP = 5;
@@ -205,7 +205,7 @@ FlameThrower.prototype.hitSpace = function(x,y) {
 }
 
 
-FlameThrower.prototype.name = function() {return "FlameThrower";}
+FlameThrower.prototype.name = function() {return "Flame Thrower";}
 
 
 var Bubble = function() {
