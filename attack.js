@@ -40,10 +40,7 @@ DirectionalAttack.prototype.targets = function(x, y) {
     return targetted;
 }
 DirectionalAttack.prototype.enact = function(player) {
-    player.delegates.push({
-        handleEvent: function() {},
-        draw: function() {},
-    })
+    player.delegates.push(EMPTY_DELEGATE)
     var that = this;
     this.animate(player, function() {
         var locationHit = this.targets(player._x, player._y)[this.selectedDirection];
@@ -107,10 +104,7 @@ AOEAttack.prototype.targets = function(player){
     return list;
 }
 AOEAttack.prototype.enact = function(player) {
-    player.delegates.push({
-        handleEvent: function() {},
-        draw: function() {},
-    })
+    player.delegates.push(EMPTY_DELEGATE)
     var that = this;
     this.animate(player, function() {
         var locationsHit = this.targets(player)

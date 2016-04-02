@@ -1,4 +1,7 @@
-
+var EMPTY_DELEGATE = {
+    handleEvent: function() {},
+    draw: function() {},
+};
 var Player = function(x, y) {
     this._x = x;
     this._y = y;
@@ -98,13 +101,50 @@ Player.prototype._attemptToSelectAttack = function(attackIndex) {
     Game._redrawMap();
 }
 
+Player.prototype.pokeBall1 = function() {
+    Game._redrawMap();
+    Game.display.drawText(this._x-2, this._y-2, '/')
+    Game.display.drawText(this._x,   this._y-2, '-')
+    Game.display.drawText(this._x+2, this._y-2, '\\')
+
+    Game.display.drawText(this._x-2, this._y,   '|')
+    Game.display.drawText(this._x+2, this._y,   '|')
+
+    Game.display.drawText(this._x-2, this._y+2, '\\')
+    Game.display.drawText(this._x,   this._y+2, '-')
+    Game.display.drawText(this._x+2, this._y+2, '/')
+}
+Player.prototype.pokeBall2 = function() {
+    Game._redrawMap();
+    Game.display.drawText(this._x-1, this._y-1, '/-\\')
+    Game.display.drawText(this._x-1, this._y,   '|o|')
+    Game.display.drawText(this._x-1, this._y+1,'\\-/')
+}
+
+Player.prototype.pokeBall3 = function() {
+    Game._redrawMap();
+    Game.display.draw(this._x, this._y, "o");
+}
+
 Player.prototype._attemptToSwap = function(slot) {
     if (this.mons[slot] !== undefined && this.currentMon != this.mons[slot]) {
-        Game.logMessage("Alright! Come back, " + this.currentMon.getName() + "!");
-        this.currentMon = this.mons[slot];
-        Game.logMessage("Go!" +  this.currentMon.getName() + "!");
-        Game._redrawMap();
-        this.finishTurn();
+        this.delegates.push(EMPTY_DELEGATE);
+        setTimeout(this.pokeBall1.bind(this), 0);
+        setTimeout(this.pokeBall2.bind(this), 150);
+        setTimeout(this.pokeBall3.bind(this), 300);
+        setTimeout((function(){
+            Game.logMessage("Alright! Come back, " + this.currentMon.getName() + "!");
+            this.currentMon = this.mons[slot];
+        }).bind(this), 301);
+
+        setTimeout(this.pokeBall2.bind(this), 600);
+        setTimeout(this.pokeBall1.bind(this), 800);
+        setTimeout((function(){
+            Game.logMessage("Go!" +  this.currentMon.getName() + "!");
+            Game._redrawMap();
+            this.finishTurn();
+        }).bind(this), 1000);
+
     } else if (this.mons[slot] == this.currentMon) {
         Game.logMessage(this.currentMon.getName()  + " is already out!");
     }
