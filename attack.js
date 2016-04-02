@@ -59,15 +59,20 @@ DirectionalAttack.prototype.enact = function(player) {
 DirectionalAttack.prototype.draw = function(player) {
     var targets = this.targets(player._x,player._y);
     for (var i = 0; i < targets.length; i+=1){
-        var drawColor = "#999"
-        if (i == this.selectedDirection) {
-            drawColor = "#eee";
-        }
         var currentList = targets[i]
         for (var d in currentList) {
             var dx = currentList[d][0];
             var dy = currentList[d][1];
-            Game.display.draw(dx, dy, "*", drawColor, "#333");
+            Game.display.draw(dx, dy, "*", "#999", "#333");
+        }
+    }
+
+    if ( this.selectedDirection != undefined ) {
+        for (var d in targets[this.selectedDirection]) {
+            console.log(d)
+            var dx = targets[this.selectedDirection][d][0];
+            var dy = targets[this.selectedDirection][d][1];
+            Game.display.draw(dx, dy, "*", "#eee", "#333");
         }
     }
 }
@@ -198,7 +203,65 @@ FlameThrower.prototype.hitSpace = function(x,y) {
         monster.takeHit(3);
     }
 }
+
+
 FlameThrower.prototype.name = function() {return "FlameThrower";}
+
+
+var Bubble = function() {
+    this.maxPP = 5;
+    this.pp = this.maxPP;
+};
+Bubble.prototype = new DirectionalAttack(3, true);
+Bubble.prototype.targets = function(x, y) {
+    var targetted = [];
+    // 4 directions
+    for (directionIndex = 0; directionIndex < 4; directionIndex+=1) {
+        targetted[directionIndex] = [];
+
+        var offsetX = ROT.DIRS[4][directionIndex][0];
+        var offsetY = ROT.DIRS[4][directionIndex][1];
+        var failure = false;
+        for (var i = -1; i < this.dist-1; i+=1) {
+            if (!failure) {
+                var cX = x + offsetX + offsetY*i;
+                var cY = y + offsetY + offsetX*i;
+                if (Game.getTile(cX, cY).isWalkable() || this.targetWalls) {
+                    targetted[directionIndex].push([cX, cY]);
+                } else {
+                    failure = true;
+                }
+            }
+        }
+    }
+    return targetted;
+}
+Bubble.prototype.animate = function(player, callback) {
+    var locationHit = this.targets(player._x, player._y)[this.selectedDirection];
+    var delay = 100;
+    var scaledTimeout = function(i, cb) {
+        setTimeout(function(){ cb(i) }, i*delay);
+    }
+    for (var i = 0; i < locationHit.length; i += 1) {
+        scaledTimeout(i, function(c){
+            var x = locationHit[c][0];
+            var y = locationHit[c][1];
+            Game.display.draw(x,y, '%', '#00F', '#000');
+        });
+    }
+    scaledTimeout(locationHit.length + 1, callback.bind(this));
+}
+
+Bubble.prototype.hitSpace = function(x,y) {
+    var monster = Game.monsterAt(x,y);
+    if (monster !== undefined) {
+        Game.logMessage(monster.name() + " is hit!");
+        monster.takeHit(3);
+    }
+}
+
+
+Bubble.prototype.name = function() {return "Bubble";}
 
 var Slash = function() {
     this.maxPP = 15;

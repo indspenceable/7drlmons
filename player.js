@@ -11,6 +11,7 @@ var Player = function(x, y) {
         ], Type.fire, Type.flying),
         new Mon("s", '#aaf', '#000', "Squirtle",  5, [
             new SkullBash(),
+            new Bubble(),
         ], Type.water),
     ]
 
