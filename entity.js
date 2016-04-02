@@ -1,9 +1,12 @@
-var Entity = function(c1,fg1,bg1) {
+var Entity = function(c1, name, fg1, bg1) {
     this.c1 = c1;
+    this._name = name;
     this.fg1 = fg1;
     this.bg1 = bg1;
 }
-
+Entity.prototype.name = function() {
+    return this._name;
+}
 // Don't call this on player! lul
 Entity.prototype.stepTowardsPlayer = function(path) {
     if (path === undefined) {
@@ -26,30 +29,27 @@ Entity.prototype.moveInstantlyToAndRedraw = function(x,y) {
 
     // this.draw();
 }
-
 Entity.prototype.isAt = function(x,y) {
     return x == this._x && y == this._y;
 }
-
 Entity.prototype.takeHit = function(damage) {
     this._hp -= damage;
     if (this._hp <= 0) {
         this.die()
     }
 }
-
 Entity.prototype.die = function() {
     Game.logMessage(this.name() + " dies");
     Game.killMonster(this);
 }
-
 Entity.prototype.draw = function() {
     Game.display.draw(this._x, this._y, this.c1, this.fg1, this.bg1);
 }
 
-var Mutant = function(x, y, hp) { this._x = x; this._y = y; this._hp = hp; }
-Mutant.prototype = new Entity("M", "#000", "#fff");
 
+
+var Mutant = function(x, y, hp) { this._x = x; this._y = y; this._hp = hp; }
+Mutant.prototype = new Entity("M", "Mutant", "#000", "#fff");
 Mutant.prototype.act = function() {
     var path = Game.findPathTo(Game.player, this);
     if (path.length <= 1) {
@@ -62,13 +62,8 @@ Mutant.prototype.act = function() {
     }
 }
 
-Mutant.prototype.name = function() {
-    return "Mutant";
-}
-
 var Ranger = function(x, y, hp) { this._x = x; this._y = y; this._hp = hp; }
-Ranger.prototype = new Entity("}", "#39a", "#222");
-
+Ranger.prototype = new Entity("}", "Ranger", "#39a", "#222");
 Ranger.prototype.act = function() {
     var range = 5;
     var path = Game.findPathTo(Game.player, this);
@@ -80,8 +75,4 @@ Ranger.prototype.act = function() {
     } else {
         this.stepTowardsPlayer(path);
     }
-}
-
-Ranger.prototype.name = function() {
-    return "Ranger";
 }
