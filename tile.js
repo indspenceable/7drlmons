@@ -36,17 +36,21 @@ WallTile.prototype.canSeeThrough = function() {
     return false;
 }
 
-var MuckTile = function(x,y) {
+var WaterTile = function(x,y) {
     this.x = x;
     this.y = y;
 }
-MuckTile.prototype = new Tile('~', '#9f9', '#99f')
-MuckTile.prototype.isWalkable = function(world) {
+WaterTile.prototype = new Tile('~', '#9f9', '#99f')
+WaterTile.prototype.isWalkable = function(world) {
     return true;
 }
-MuckTile.prototype.trigger = function() {
-    Game.logMessage("You're bogged down in the slime!")
-    Game.player.delay += 1;
+WaterTile.prototype.trigger = function() {
+    if (!Game.player.currentMon.isType(Type.Water)) {
+        Game.logMessage("You're bogged down in the water!")
+        Game.player.delay += 1;
+    } else {
+        Game.logMessage("You easily swim through the water.")
+    }
 }
 
 
