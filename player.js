@@ -24,6 +24,7 @@ var Player = function(x, y) {
     this.delegates = [];
 }
 
+
 Player.prototype = new Entity();
 
 Player.prototype._currentDelegate = function() {
@@ -98,11 +99,11 @@ Player.prototype._attemptToSelectAttack = function(attackIndex) {
     } else {
         this.delegates.push(attack);
     }
-    Game._redrawMap();
+    Game.redrawMap();
 }
 
 Player.prototype.pokeBall1 = function() {
-    Game._redrawMap();
+    Game.redrawMap();
     Game.display.drawText(this._x-2, this._y-2, '/')
     Game.display.drawText(this._x,   this._y-2, '-')
     Game.display.drawText(this._x+2, this._y-2, '\\')
@@ -115,14 +116,14 @@ Player.prototype.pokeBall1 = function() {
     Game.display.drawText(this._x+2, this._y+2, '/')
 }
 Player.prototype.pokeBall2 = function() {
-    Game._redrawMap();
+    Game.redrawMap();
     Game.display.drawText(this._x-1, this._y-1, '/-\\')
     Game.display.drawText(this._x-1, this._y,   '|o|')
     Game.display.drawText(this._x-1, this._y+1,'\\-/')
 }
 
 Player.prototype.pokeBall3 = function() {
-    Game._redrawMap();
+    Game.redrawMap();
     Game.display.draw(this._x, this._y, "o");
 }
 
@@ -141,7 +142,7 @@ Player.prototype._attemptToSwap = function(slot) {
         setTimeout(this.pokeBall1.bind(this), 800);
         setTimeout((function(){
             Game.logMessage("Go!" +  this.currentMon.getName() + "!");
-            Game._redrawMap();
+            Game.redrawMap();
             this.finishTurn();
         }).bind(this), 1000);
 
@@ -153,7 +154,7 @@ Player.prototype._attemptToSwap = function(slot) {
 Player.prototype._doMovement = function(newX, newY) {
     this._x = newX;
     this._y = newY;
-    Game._redrawMap();
+    Game.redrawMap();
     Game.getTile(this._x, this._y).trigger();
     this.finishTurn();
 }

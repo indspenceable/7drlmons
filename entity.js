@@ -4,6 +4,14 @@ var Entity = function(c1, name, fg1, bg1) {
     this.fg1 = fg1;
     this.bg1 = bg1;
 }
+
+Entity.prototype.getX = function() {
+    return this._x;
+}
+Entity.prototype.getY = function() {
+    return this._y;
+}
+
 Entity.prototype.name = function() {
     return this._name;
 }

@@ -19,7 +19,7 @@ var Game = {
         this.engine = new ROT.Engine(this.scheduler);
 
         this._generateMap();
-        this._redrawMap();
+        this.redrawMap();
         this._drawMapUIDivider();
         this._drawUI();
 
@@ -35,8 +35,8 @@ var Game = {
                     (monsterAtSpace === end)) &&
                     Game.getTile(x,y).isWalkable();
         }
-        var astar = new ROT.Path.AStar(start._x, start._y, passableCallback, {topology: 4});
-        astar.compute(end._x, end._y, function(x,y) {
+        var astar = new ROT.Path.AStar(start.getX(), start.getY(), passableCallback, {topology: 4});
+        astar.compute(end.getX(), end.getY(), function(x,y) {
             path.push([x,y]);
         });
         return path;
@@ -126,7 +126,7 @@ var Game = {
         if (index >= 0) {
             this.entities.splice(index, 1);
         }
-        this.drawMapTileAt(monster._x, monster._y);
+        this.drawMapTileAt(monster.getX(), monster.getY());
     },
 
     monsterAt: function(x,y) {
@@ -146,7 +146,7 @@ var Game = {
         }
     },
 
-    _redrawMap: function() {
+    redrawMap: function() {
         this._calculateFOV();
         this._drawWholeMap();
         this.player.draw();
@@ -164,7 +164,7 @@ var Game = {
         var player = this.player;
 
         var noBlock = function(x,y) {
-            return Math.abs(player._x - x) + Math.abs(player._y - y) < varRadius;
+            return Math.abs(player.getX() - x) + Math.abs(player.getY() - y) < varRadius;
         }
         var lightPasses = function(x,y) {
             var tile = Game.getTile(x,y);
@@ -172,7 +172,7 @@ var Game = {
         }
         var fov = new ROT.FOV.PreciseShadowcasting(lightPasses);
         this.visibleTiles = [];
-        fov.compute(this.player._x, this.player._y, varRadius, function(x,y,r,canSee) {
+        fov.compute(this.player.getX(), this.player.getY(), varRadius, function(x,y,r,canSee) {
             Game.visibleTiles[[x,y]] = true;
             Game.seenTiles[[x,y]] = true;
         });

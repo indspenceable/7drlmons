@@ -14,7 +14,7 @@ DirectionalAttack.prototype.handleEvent = function(player, e) {
     } else {
         player.delegates = [];
     }
-    Game._redrawMap()
+    Game.redrawMap()
 }
 DirectionalAttack.prototype.targets = function(x, y) {
     var targetted = [];
@@ -43,7 +43,7 @@ DirectionalAttack.prototype.enact = function(player) {
     player.delegates.push(EMPTY_DELEGATE)
     var that = this;
     this.animate(player, function() {
-        var locationHit = this.targets(player._x, player._y)[this.selectedDirection];
+        var locationHit = this.targets(player.getX(), player.getY())[this.selectedDirection];
         for (var i = 0; i < locationHit.length; i += 1) {
             var x = locationHit[i][0];
             var y = locationHit[i][1];
@@ -54,7 +54,7 @@ DirectionalAttack.prototype.enact = function(player) {
     });
 }
 DirectionalAttack.prototype.draw = function(player) {
-    var targets = this.targets(player._x,player._y);
+    var targets = this.targets(player.getX(),player.getY());
     for (var i = 0; i < targets.length; i+=1){
         var currentList = targets[i]
         for (var d in currentList) {
@@ -75,7 +75,7 @@ DirectionalAttack.prototype.draw = function(player) {
 }
 DirectionalAttack.prototype.finish = function(player) {
     this.pp -= 1;
-    Game._redrawMap();
+    Game.redrawMap();
     player.finishTurn();
 }
 
@@ -90,7 +90,7 @@ AOEAttack.prototype.handleEvent = function(player, e) {
     } else {
         player.delegates = [];
     }
-    Game._redrawMap()
+    Game.redrawMap();
 }
 AOEAttack.prototype.targets = function(player){
     // list of x,y pairs
@@ -98,7 +98,7 @@ AOEAttack.prototype.targets = function(player){
     for (var a = -this.radius; a < this.radius+1; a+=1) {
         for (var b = -this.radius; b < this.radius+1; b+=1) {
             if (Math.abs(a) + Math.abs(b) <= this.radius && (a != 0 || b != 0))
-            list.push([player._x + a, player._y + b]);
+            list.push([player.getX() + a, player.getY() + b]);
         }
     }
     return list;
@@ -128,7 +128,7 @@ AOEAttack.prototype.draw = function(player) {
 }
 AOEAttack.prototype.finish = function(player) {
     this.pp -= 1;
-    Game._redrawMap();
+    Game.redrawMap();
     player.finishTurn();
 }
 
@@ -148,7 +148,7 @@ EarthQuake.prototype.animate = function(player, callback) {
     for (var s = 0; s < 9; s += 1) {
         scaledTimeout(s, function(c){
             if (c%2 == 1) {
-                Game._redrawMap();
+                Game.redrawMap();
             } else {
                 for (var i = 0; i < locationsHit.length; i += 1) {
                     var x = locationsHit[i][0];
@@ -175,7 +175,7 @@ var FlameThrower = function() {
 };
 FlameThrower.prototype = new DirectionalAttack(3, false);
 FlameThrower.prototype.animate = function(player, callback) {
-    var locationHit = this.targets(player._x, player._y)[this.selectedDirection];
+    var locationHit = this.targets(player.getX(), player.getY())[this.selectedDirection];
     var delay = 100;
     var scaledTimeout = function(i, cb) {
         setTimeout(function(){ cb(i) }, i*delay);
@@ -231,7 +231,7 @@ Bubble.prototype.targets = function(x, y) {
     return targetted;
 }
 Bubble.prototype.animate = function(player, callback) {
-    var locationHit = this.targets(player._x, player._y)[this.selectedDirection];
+    var locationHit = this.targets(player.getX(), player.getY())[this.selectedDirection];
     var delay = 100;
     var scaledTimeout = function(i, cb) {
         setTimeout(function(){ cb(i) }, i*delay);
@@ -264,7 +264,7 @@ var Slash = function() {
 };
 Slash.prototype = new DirectionalAttack(1, true);
 Slash.prototype.animate = function(player, callback) {
-    var locationHit = this.targets(player._x, player._y)[this.selectedDirection];
+    var locationHit = this.targets(player.getX(), player.getY())[this.selectedDirection];
     var delay = 100;
     var scaledTimeout = function(i, cb) {
         setTimeout(function(){ cb(i) }, i*delay);
@@ -301,7 +301,7 @@ var SkullBash = function() {
 SkullBash.prototype = new DirectionalAttack(1, true);
 
 SkullBash.prototype.animate = function(player, callback) {
-    var locationHit = this.targets(player._x, player._y)[this.selectedDirection];
+    var locationHit = this.targets(player.getX(), player.getY())[this.selectedDirection];
     var delay = 250;
     var scaledTimeout = function(i, cb) {
         setTimeout(function(){ cb(i) }, i*delay);
