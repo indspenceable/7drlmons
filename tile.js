@@ -54,16 +54,26 @@ WaterTile.prototype.trigger = function() {
 }
 
 
-var IceTile = function(x, y) {
+var FireTile = function(x, y) {
     this.x = x;
     this.y = y;
 }
+FireTile.prototype = new Tile('#', '#000', '#000')
 
-IceTile.prototype = new Tile('_', '#244', '#599')
-IceTile.prototype.isWalkable = function(world) {
-    return true;
+FireTile.prototype.draw = function() {
+    var first = ['f','e','d'].random();
+    var second = ['6','4','2'].random();
+    var third = ['6','4','2'].random();
+    var fg = '#' + first + second + third;
+
+    Game.display.draw(this.x, this.y, this.c1, fg, this.bg1);
 }
 
-IceTile.prototype.trigger = function() {
-    Game.logMessage("You slide on the ice. But not really.")
+FireTile.prototype.trigger = function() {
+    if (!Game.player.currentMon.isType(Type.Fire)) {
+        Game.logMessage("The fire burns you!")
+        Game.player.takeHit(1);
+    } else {
+        Game.logMessage("You're surrounded by a warm feeling.")
+    }
 }

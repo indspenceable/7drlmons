@@ -80,7 +80,7 @@ var Game = {
         for (var y = 0; y < this.map.length; y+=1) {
             for (var x = 0; x < this.map[0].length; x+=1) {
                 var tileType = [
-                    EmptySpaceTile, WallTile, WaterTile, IceTile
+                    EmptySpaceTile, WallTile, WaterTile, FireTile,
                 ][this.map[y][x]];
                 this.map[y][x] = new tileType(x, y);
             }
