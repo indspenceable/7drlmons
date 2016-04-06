@@ -11,6 +11,7 @@ var Player = function(x, y) {
             new FlameThrower(),
             new Slash(),
             new EarthQuake(),
+            new Dig(),
         ], Type.Fire, Type.Flying),
         new Mon("s", '#aaf', '#000', "Squirtle",  5, [
             new SkullBash(),
@@ -96,6 +97,7 @@ Player.prototype._attemptToSelectAttack = function(attackIndex) {
     } else if (attack.pp <= 0) {
         Game.logMessage("out of PP!");
     } else {
+        attack.reset(this);
         this.delegates.push(attack);
     }
     Game.redrawMap();

@@ -2,6 +2,9 @@ var DirectionalAttack = function(dist, targetWalls) {
     this.dist = dist;
     this.targetWalls = targetWalls;
 }
+DirectionalAttack.prototype.reset = function(player) {
+    this.selectedDirection = undefined;
+}
 DirectionalAttack.prototype.handleEvent = function(player, e) {
     var movementKeymap = { 38: 0, 39: 1, 40: 2, 37: 3, }
     var code = e.keyCode;
@@ -81,6 +84,8 @@ DirectionalAttack.prototype.finish = function(player) {
 var AOEAttack = function(distance) {
     this.radius = distance;
 };
+AOEAttack.prototype.reset = function(player) {}
+
 AOEAttack.prototype.handleEvent = function(player, e) {
     var code = e.keyCode;
     if (code == 13) {
@@ -96,8 +101,9 @@ AOEAttack.prototype.targets = function(player){
     var list = [];
     for (var a = -this.radius; a < this.radius+1; a+=1) {
         for (var b = -this.radius; b < this.radius+1; b+=1) {
-            if (Math.abs(a) + Math.abs(b) <= this.radius && (a != 0 || b != 0))
-            list.push([player.getX() + a, player.getY() + b]);
+            if (Math.abs(a) + Math.abs(b) <= this.radius && (a != 0 || b != 0)) {
+                list.push([player.getX() + a, player.getY() + b]);
+            }
         }
     }
     return list;
@@ -129,6 +135,125 @@ AOEAttack.prototype.finish = function(player) {
     this.pp -= 1;
     Game.redrawMap();
     player.finishTurn();
+}
+
+var SelectableTargetAttack = function() {}
+SelectableTargetAttack.prototype.reset = function(player) {
+    this._cursorX = player.getX();
+    this._cursorY = player.getY();
+}
+SelectableTargetAttack.prototype.handleEvent = function(player, e) {
+    if (this._cursorX === undefined) {
+
+    }
+    var movementKeymap = { 38: 0, 39: 1, 40: 2, 37: 3, }
+    var code = e.keyCode;
+
+    if (code in movementKeymap) {
+        this.moveCursor(movementKeymap[code]);
+    } else if (code == 13 && this.validSelection(player)) {
+        // Actually do the attack!
+        this.enact(player);
+    } else {
+
+        player.delegates = [];
+    }
+    Game.redrawMap()
+}
+
+// SelectableTargetAttack.prototype.targets = function(x, y) {
+    // TODO - generate the list of targets here
+// }
+SelectableTargetAttack.prototype.validSelection = function(player) {
+    var targets = this.targets(player);
+    for (var i = 0; i < targets.length; i+=1) {
+        var x = targets[i][0];
+        var y = targets[i][1];
+        if (x === this._cursorX && y === this._cursorY) {
+            return true;
+        }
+    }
+    return false;
+}
+SelectableTargetAttack.prototype.enact = function(player) {
+    player.delegates.push(EMPTY_DELEGATE)
+    var that = this;
+    this.animate(player, function() {
+        this.hitSpace(player, this._cursorX, this._cursorY);
+        this.finish(player);
+    });
+}
+SelectableTargetAttack.prototype.draw = function(player) {
+    var targets = this.targets(player);
+    for (var i = 0; i < targets.length; i+=1){
+        var drawColor = "#eee";
+        var dx = targets[i][0];
+        var dy = targets[i][1];
+        Game.display.draw(dx, dy, "*", drawColor, "#333");
+    }
+
+    if (this.validSelection(player)) {
+        Game.display.draw(this._cursorX, this._cursorY, "X", "#00f", "#333");
+    } else {
+        Game.display.draw(this._cursorX, this._cursorY, "X", "#f00", "#333");
+    }
+}
+SelectableTargetAttack.prototype.finish = function(player) {
+    this.pp -= 1;
+    Game.redrawMap();
+    player.finishTurn();
+}
+SelectableTargetAttack.prototype.moveCursor = function(direction) {
+    var offsetX = ROT.DIRS[4][direction][0];
+    var offsetY = ROT.DIRS[4][direction][1];
+    this._cursorX += offsetX;
+    this._cursorY += offsetY;
+}
+
+var Dig = function() {
+    this.radius = 4;
+    this.maxPP = 5;
+    this.pp = this.maxPP;
+}
+Dig.prototype = new SelectableTargetAttack();
+Dig.prototype.validSelection = function(player) {
+    return (SelectableTargetAttack.prototype.validSelection.call(this, player) &&
+        (Game.monsterAt(this._cursorX, this._cursorY) === undefined) &&
+        (Game.getTile(this._cursorX, this._cursorY).isWalkable()) &&
+        (Game._canSee(this._cursorX, this._cursorY)));
+}
+Dig.prototype.name = function() {
+    return "Dig";
+}
+Dig.prototype.targets = function(player){
+    // list of x,y pairs
+    var list = [];
+    for (var a = -this.radius; a < this.radius+1; a+=1) {
+        for (var b = -this.radius; b < this.radius+1; b+=1) {
+            if (Math.abs(a) + Math.abs(b) <= this.radius && (a != 0 || b != 0)) {
+                list.push([player.getX() + a, player.getY() + b]);
+            }
+        }
+    }
+    return list;
+}
+Dig.prototype.animate = function(player, callback) {
+    var delay = 500;
+    var scaledTimeout = function(i, cb) {
+        setTimeout(function(){ cb(i) }, i*delay);
+    }
+    scaledTimeout(0, function(){
+        Game.display.draw(player.getX(), player.getY(), '~', '#c90', '#752')
+    }.bind(this));
+    scaledTimeout(1, function(){
+        player._currentMon.drawAt(this._cursorX, this._cursorY);
+    }.bind(this));
+    scaledTimeout(2, callback.bind(this));
+}
+
+Dig.prototype.hitSpace = function(entity, x,y) {
+    entity._x = x;
+    entity._y = y;
 }
 
 var EarthQuake = function() {
@@ -253,7 +378,6 @@ Bubble.prototype.hitSpace = function(entity, x,y) {
     }
 }
 
-
 Bubble.prototype.name = function() {return "Bubble";}
 
 var Slash = function() {
@@ -298,7 +422,6 @@ var SkullBash = function() {
     this.isMelee = true;
 };
 SkullBash.prototype = new DirectionalAttack(1, true);
-
 SkullBash.prototype.animate = function(player, callback) {
     var locationHit = this.targets(player.getX(), player.getY())[this.selectedDirection];
     var delay = 250;
