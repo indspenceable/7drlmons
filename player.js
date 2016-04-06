@@ -18,7 +18,7 @@ var Player = function(x, y) {
         ], Type.Water),
     ]
 
-    this.currentMon = this.mons[0];
+    this._currentMon = this.mons[0];
     this.delay = 0;
 
     this.delegates = [];
@@ -32,10 +32,10 @@ Player.prototype._currentDelegate = function() {
 }
 
 Player.prototype.getHp = function() {
-    return this.currentMon._hp;
+    return this._currentMon._hp;
 }
 Player.prototype.getMaxHp = function() {
-    return this.currentMon._maxHp;
+    return this._currentMon._maxHp;
 }
 
 Player.prototype.act = function() {
@@ -91,9 +91,9 @@ Player.prototype._attemptMovement = function(dirIndex) {
 }
 
 Player.prototype._attemptToSelectAttack = function(attackIndex) {
-    var attack = this.currentMon.moves[attackIndex];
+    var attack = this._currentMon.moves[attackIndex];
     if (attack === undefined) {
-        Game.logMessage(this.currentMon.getName() + " doesn't know that move!");
+        Game.logMessage(this.getName() + " doesn't know that move!");
     } else if (attack.pp <= 0) {
         Game.logMessage("out of PP!");
     } else {
@@ -128,26 +128,26 @@ Player.prototype.pokeBall3 = function() {
 }
 
 Player.prototype._attemptToSwap = function(slot) {
-    if (this.mons[slot] !== undefined && this.currentMon != this.mons[slot]) {
+    if (this.mons[slot] !== undefined && this._currentMon != this.mons[slot]) {
         this.delegates.push(EMPTY_DELEGATE);
         setTimeout(this.pokeBall1.bind(this), 0);
         setTimeout(this.pokeBall2.bind(this), 150);
         setTimeout(this.pokeBall3.bind(this), 300);
         setTimeout((function(){
-            Game.logMessage("Alright! Come back, " + this.currentMon.getName() + "!");
-            this.currentMon = this.mons[slot];
+            Game.logMessage("Alright! Come back, " + this.getName() + "!");
+            this._currentMon = this.mons[slot];
         }).bind(this), 301);
 
         setTimeout(this.pokeBall2.bind(this), 600);
         setTimeout(this.pokeBall1.bind(this), 800);
         setTimeout((function(){
-            Game.logMessage("Go!" +  this.currentMon.getName() + "!");
+            Game.logMessage("Go!" +  this.getName() + "!");
             Game.redrawMap();
             this.finishTurn();
         }).bind(this), 1000);
 
-    } else if (this.mons[slot] == this.currentMon) {
-        Game.logMessage(this.currentMon.getName()  + " is already out!");
+    } else if (this.mons[slot] == this._currentMon) {
+        Game.logMessage(this.getName()  + " is already out!");
     }
 }
 
@@ -155,20 +155,20 @@ Player.prototype._doMovement = function(newX, newY) {
     this._x = newX;
     this._y = newY;
     Game.redrawMap();
-    Game.getTile(this._x, this._y).trigger();
+    Game.getTile(this._x, this._y).trigger(this);
     this.finishTurn();
 }
 
 Player.prototype.takeHit = function(damage) {
-    var rtn = Entity.prototype.takeHit.call(this.currentMon, damage);
+    var rtn = Entity.prototype.takeHit.call(this._currentMon, damage);
     Game._drawUI();
     return rtn;
 }
 
 //TODO this should live on the mon.
 Player.prototype.defaultMeleeAttack = function() {
-    for (var i = 0; i < this.currentMon.moves.length; i+=1) {
-        var move = this.currentMon.moves[i];
+    for (var i = 0; i < this._currentMon.moves.length; i+=1) {
+        var move = this._currentMon.moves[i];
         if (move.isMelee === true && move.pp > 0) {
             return move;
         }
@@ -186,7 +186,7 @@ Player.prototype._doAttack = function(direction, monster) {
 }
 
 Player.prototype.draw = function() {
-    this.currentMon.drawAt(this._x, this._y);
+    this._currentMon.drawAt(this._x, this._y);
     if (this._currentDelegate() !== undefined) {
         this._currentDelegate().draw(this);
     }
@@ -197,4 +197,16 @@ Player.prototype.finishTurn = function() {
     this.delegates = [];
     window.removeEventListener("keydown", this);
     Game.engine.unlock();
+}
+
+Player.prototype.isType = function(type) {
+    return this._currentMon.isType(type);
+}
+
+Player.prototype.logVisible = function(message) {
+    Game.logMessage(message);
+}
+
+Player.prototype.getName = function() {
+    return this._currentMon.getName();
 }

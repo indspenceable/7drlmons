@@ -192,8 +192,8 @@ var Game = {
         var height = 25;
 
         this._clearUIRow(x, y, width)
-        this.display.drawText(x, y, "?) " + this.player.currentMon.getName());
-        this.player.currentMon.drawAt(x, y);
+        this.display.drawText(x, y, "?) " + this.player._currentMon.getName());
+        this.player._currentMon.drawAt(x, y);
         y+=1;
 
         this._clearUIRow(x, y, width)
@@ -213,16 +213,16 @@ var Game = {
         y+=1;
         y+=1;
         this._clearUIRow(x, y, width)
-        this.displayMove(x, y, "q", this.player.currentMon.moves[0])
+        this.displayMove(x, y, "q", this.player._currentMon.moves[0])
         y+=1;
         this._clearUIRow(x, y, width)
-        this.displayMove(x, y, "w", this.player.currentMon.moves[1])
+        this.displayMove(x, y, "w", this.player._currentMon.moves[1])
         y+=1;
         this._clearUIRow(x, y, width)
-        this.displayMove(x, y, "e", this.player.currentMon.moves[2])
+        this.displayMove(x, y, "e", this.player._currentMon.moves[2])
         y+=1;
         this._clearUIRow(x, y, width)
-        this.displayMove(x, y, "r", this.player.currentMon.moves[3])
+        this.displayMove(x, y, "r", this.player._currentMon.moves[3])
         y+=1;
         this._clearAndDrawMessageLog();
     },
@@ -231,7 +231,7 @@ var Game = {
         if (mon === undefined) {
             return;
         }
-        if (mon === this.player.currentMon) {
+        if (mon === this.player._currentMon) {
             this.display.drawText(x, y, "*)");
         } else {
             var str = "" + (index+1) + ")";

@@ -44,15 +44,14 @@ WaterTile.prototype = new Tile('~', '#9f9', '#99f')
 WaterTile.prototype.isWalkable = function(world) {
     return true;
 }
-WaterTile.prototype.trigger = function() {
-    if (!Game.player.currentMon.isType(Type.Water)) {
-        Game.logMessage("You're bogged down in the water!")
-        Game.player.delay += 1;
+WaterTile.prototype.trigger = function(entity) {
+    if (!entity.isType(Type.Water)) {
+        entity.logVisible(entity.getName() + " is bogged down in the water!");
+        entity.delay += 1;
     } else {
-        Game.logMessage("You easily swim through the water.")
+        entity.logVisible(entity.getName() + " easily swims through the water.");
     }
 }
-
 
 var FireTile = function(x, y) {
     this.x = x;
@@ -69,11 +68,11 @@ FireTile.prototype.draw = function() {
     Game.display.draw(this.x, this.y, this.c1, fg, this.bg1);
 }
 
-FireTile.prototype.trigger = function() {
-    if (!Game.player.currentMon.isType(Type.Fire)) {
-        Game.logMessage("The fire burns you!")
-        Game.player.takeHit(1);
+FireTile.prototype.trigger = function(entity) {
+    if (!entity.isType(Type.Fire)) {
+        entity.logVisible(entity.getName() + " is burned by the fire!");
+        entity.takeHit(1);
     } else {
-        Game.logMessage("You're surrounded by a warm feeling.")
+        entity.logVisible(entity.getName() + " is by a warm feeling.")
     }
 }

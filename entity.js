@@ -1,8 +1,10 @@
-var Entity = function(c1, name, fg1, bg1) {
+var Entity = function(c1, name, fg1, bg1, type1, type2) {
     this.c1 = c1;
     this._name = name;
     this.fg1 = fg1;
     this.bg1 = bg1;
+    this._type1 = type1;
+    this._type2 = type2;
 }
 
 Entity.prototype.getX = function() {
@@ -12,7 +14,7 @@ Entity.prototype.getY = function() {
     return this._y;
 }
 
-Entity.prototype.name = function() {
+Entity.prototype.getName = function() {
     return this._name;
 }
 // Don't call this on player! lul
@@ -32,6 +34,8 @@ Entity.prototype.moveInstantlyToAndRedraw = function(x,y) {
 
     this._x = x;
     this._y = y;
+
+    Game.getTile(this._x, this._y).trigger(this);
     Game.drawMapTileAt(oldX, oldY);
     Game.drawMapTileAt(x, y);
 
@@ -47,7 +51,7 @@ Entity.prototype.takeHit = function(damage) {
     }
 }
 Entity.prototype.die = function() {
-    Game.logMessage(this.name() + " dies");
+    Game.logMessage(this.getName() + " dies");
     Game.killMonster(this);
 }
 Entity.prototype.draw = function() {
@@ -60,7 +64,15 @@ Entity.prototype.act = function() {
         this.doAction();
     }
 }
+Entity.prototype.isType = function(type) {
+    return this._type1 == type || this._type2 == type;
+}
 
+Entity.prototype.logVisible = function(message) {
+    if (Game._canSee(this._x, this._y)) {
+        Game.logMessage(message);
+    }
+}
 
 var Mutant = function(x, y, hp) {
     this._x = x;
@@ -68,7 +80,7 @@ var Mutant = function(x, y, hp) {
     this._hp = hp;
     this.delay = 0;
 }
-Mutant.prototype = new Entity("M", "Mutant", "#000", "#fff");
+Mutant.prototype = new Entity("M", "Mutant", "#000", "#fff", Type.Normal);
 Mutant.prototype.doAction = function() {
     var path = Game.findPathTo(Game.player, this);
     if (path.length <= 1) {
@@ -87,7 +99,7 @@ var Ranger = function(x, y, hp) {
     this._hp = hp;
     this.delay = 0;
 }
-Ranger.prototype = new Entity("}", "Ranger", "#39a", "#222");
+Ranger.prototype = new Entity("}", "Ranger", "#39a", "#222", Type.Normal);
 Ranger.prototype.doAction = function() {
     var range = 5;
     var path = Game.findPathTo(Game.player, this);

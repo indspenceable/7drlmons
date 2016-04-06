@@ -163,7 +163,7 @@ EarthQuake.prototype.animate = function(player, callback) {
 EarthQuake.prototype.hitSpace = function(x,y) {
     var monster = Game.monsterAt(x,y);
     if (monster !== undefined) {
-        Game.logMessage(monster.name() + " is hit!");
+        Game.logMessage(monster.getName() + " is hit!");
         monster.takeHit(2);
     }
 }
@@ -193,7 +193,7 @@ FlameThrower.prototype.animate = function(player, callback) {
 FlameThrower.prototype.hitSpace = function(x,y) {
     var monster = Game.monsterAt(x,y);
     if (monster !== undefined) {
-        Game.logMessage(monster.name() + " is burned!");
+        Game.logMessage(monster.getName() + " is burned!");
         monster.takeHit(3);
     }
 }
@@ -249,7 +249,7 @@ Bubble.prototype.animate = function(player, callback) {
 Bubble.prototype.hitSpace = function(x,y) {
     var monster = Game.monsterAt(x,y);
     if (monster !== undefined) {
-        Game.logMessage(monster.name() + " is hit!");
+        Game.logMessage(monster.getName() + " is hit!");
         monster.takeHit(3);
     }
 }
@@ -286,7 +286,7 @@ Slash.prototype.animate = function(player, callback) {
 Slash.prototype.hitSpace = function(x,y) {
     var monster = Game.monsterAt(x,y);
     if (monster !== undefined) {
-        Game.logMessage(monster.name() + " is slashed!");
+        Game.logMessage(monster.getName() + " is slashed!");
         monster.takeHit(3);
     }
 }
@@ -330,7 +330,7 @@ SkullBash.prototype.animate = function(player, callback) {
 SkullBash.prototype.hitSpace = function(x,y) {
     var monster = Game.monsterAt(x,y);
     if (monster !== undefined) {
-        Game.logMessage(monster.name() + " is hit!!");
+        Game.logMessage(monster.getName() + " is hit!!");
         monster.takeHit(3);
     }
 }
