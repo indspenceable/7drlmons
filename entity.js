@@ -44,12 +44,39 @@ Entity.prototype.moveInstantlyToAndRedraw = function(x,y) {
 Entity.prototype.isAt = function(x,y) {
     return x == this._x && y == this._y;
 }
-Entity.prototype.takeHit = function(damage) {
-    this._hp -= damage;
+Entity.prototype.takeHit = function(damage, damageType) {
+    var diff = this.weaknessAndResistanceDiff(damageType);
+    this._hp -= Math.max(damage + diff, 1);
+    if (diff != 0) {
+        console.log("This is: ", this);
+        this.logVisible(this.weaknessMessage(diff));
+    }
     if (this._hp <= 0) {
         this.die()
     }
 }
+
+Entity.prototype.weaknessAndResistanceDiff = function(type) {
+    var differential = 0;
+    if (this._type1 !== undefined) {
+        differential += this._type1[type.name]
+    }
+    if (this._type2 !== undefined) {
+        differential += this._type2[type.name]
+    }
+    return differential;
+}
+
+Entity.prototype.weaknessMessage = function(amt) {
+    console.log(amt);
+    console.log(this);
+    if (amt > 0) {
+        return "It's super effective!";
+    } else if (amt < 0) {
+        return "It's not very effective.";
+    }
+}
+
 Entity.prototype.die = function() {
     Game.logMessage(this.getName() + " dies");
     Game.killMonster(this);
@@ -80,14 +107,14 @@ var Mutant = function(x, y, hp) {
     this._hp = hp;
     this.delay = 0;
 }
-Mutant.prototype = new Entity("M", "Mutant", "#000", "#fff", Type.Normal);
+Mutant.prototype = new Entity("M", "Mutant", "#000", "#fff", Type.Ground);
 Mutant.prototype.doAction = function() {
     var path = Game.findPathTo(Game.player, this);
     if (path.length <= 1) {
         //No path! Ignore
     } else if (path.length == 2) {
         Game.logMessage("The massive mutant hits you!");
-        Game.player.takeHit(2);
+        Game.player.takeHit(2, Type.Ground);
     } else {
         this.stepTowardsPlayer(path);
     }
@@ -99,7 +126,7 @@ var Ranger = function(x, y, hp) {
     this._hp = hp;
     this.delay = 0;
 }
-Ranger.prototype = new Entity("}", "Ranger", "#39a", "#222", Type.Normal);
+Ranger.prototype = new Entity("}", "Ranger", "#39a", "#222", Type.Flying);
 Ranger.prototype.doAction = function() {
     var range = 5;
     var path = Game.findPathTo(Game.player, this);
@@ -107,7 +134,7 @@ Ranger.prototype.doAction = function() {
         //No path! Ignore
     } else if (path.length <= range+1) {
         Game.logMessage("The Ranger shoots an arrow at you from afar!");
-        Game.player.takeHit(1);
+        Game.player.takeHit(1, Type.Flying);
     } else {
         this.stepTowardsPlayer(path);
     }

@@ -9,6 +9,7 @@ var Mon = function(char, fg, bg, name, hp, moves, type1, type2) {
     this._type1 = type1;
     this._type2 = type2;
 }
+Mon.prototype = new Entity()
 Mon.prototype.drawAt = function(x, y) {
     Game.display.draw(x, y, this._char, this._fg, this._bg);
 }
@@ -17,4 +18,7 @@ Mon.prototype.getName = function() {
 }
 Mon.prototype.isType = function(type) {
     return this._type1 == type || this._type2 == type;
+}
+Mon.prototype.logVisible = function(message) {
+    Game.logMessage(message);
 }

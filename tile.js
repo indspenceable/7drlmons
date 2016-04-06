@@ -71,7 +71,7 @@ FireTile.prototype.draw = function() {
 FireTile.prototype.trigger = function(entity) {
     if (!entity.isType(Type.Fire)) {
         entity.logVisible(entity.getName() + " is burned by the fire!");
-        entity.takeHit(1);
+        entity.takeHit(1, Type.Fire);
     } else {
         entity.logVisible(entity.getName() + " is by a warm feeling.")
     }

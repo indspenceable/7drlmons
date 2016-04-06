@@ -24,7 +24,6 @@ var Player = function(x, y) {
     this.delegates = [];
 }
 
-
 Player.prototype = new Entity();
 
 Player.prototype._currentDelegate = function() {
@@ -159,8 +158,8 @@ Player.prototype._doMovement = function(newX, newY) {
     this.finishTurn();
 }
 
-Player.prototype.takeHit = function(damage) {
-    var rtn = Entity.prototype.takeHit.call(this._currentMon, damage);
+Player.prototype.takeHit = function(damage, type) {
+    var rtn = Entity.prototype.takeHit.call(this._currentMon, damage, type);
     Game._drawUI();
     return rtn;
 }
@@ -204,7 +203,7 @@ Player.prototype.isType = function(type) {
 }
 
 Player.prototype.logVisible = function(message) {
-    Game.logMessage(message);
+    return this._currentMon.logVisible(message);
 }
 
 Player.prototype.getName = function() {

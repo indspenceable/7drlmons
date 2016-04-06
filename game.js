@@ -205,7 +205,6 @@ var Game = {
 
         for (var i = 0; i < 5; i+=1) {
             y+=1;
-            console.log("hello!", i);
             this._clearUIRow(x,y, width);
             this._displayMon(x, y, i, this.player.mons[i]);
         }

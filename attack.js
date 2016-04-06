@@ -164,7 +164,7 @@ EarthQuake.prototype.hitSpace = function(x,y) {
     var monster = Game.monsterAt(x,y);
     if (monster !== undefined) {
         Game.logMessage(monster.getName() + " is hit!");
-        monster.takeHit(2);
+        monster.takeHit(2, Type.Ground);
     }
 }
 EarthQuake.prototype.name = function() {return "Earth Quake";}
@@ -194,7 +194,7 @@ FlameThrower.prototype.hitSpace = function(x,y) {
     var monster = Game.monsterAt(x,y);
     if (monster !== undefined) {
         Game.logMessage(monster.getName() + " is burned!");
-        monster.takeHit(3);
+        monster.takeHit(3, Type.Fire);
     }
 }
 
@@ -250,7 +250,7 @@ Bubble.prototype.hitSpace = function(x,y) {
     var monster = Game.monsterAt(x,y);
     if (monster !== undefined) {
         Game.logMessage(monster.getName() + " is hit!");
-        monster.takeHit(3);
+        monster.takeHit(3, Type.Water);
     }
 }
 
@@ -287,7 +287,7 @@ Slash.prototype.hitSpace = function(x,y) {
     var monster = Game.monsterAt(x,y);
     if (monster !== undefined) {
         Game.logMessage(monster.getName() + " is slashed!");
-        monster.takeHit(3);
+        monster.takeHit(3, Type.Normal);
     }
 }
 Slash.prototype.name = function() {return "Slash";}
@@ -331,7 +331,7 @@ SkullBash.prototype.hitSpace = function(x,y) {
     var monster = Game.monsterAt(x,y);
     if (monster !== undefined) {
         Game.logMessage(monster.getName() + " is hit!!");
-        monster.takeHit(3);
+        monster.takeHit(3, Type.Normal);
     }
 }
 SkullBash.prototype.finish = function(player) {
