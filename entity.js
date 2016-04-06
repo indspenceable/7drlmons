@@ -53,12 +53,23 @@ Entity.prototype.die = function() {
 Entity.prototype.draw = function() {
     Game.display.draw(this._x, this._y, this.c1, this.fg1, this.bg1);
 }
+Entity.prototype.act = function() {
+    if (this.delay > 0) {
+        this.delay -= 1;
+    } else {
+        this.doAction();
+    }
+}
 
 
-
-var Mutant = function(x, y, hp) { this._x = x; this._y = y; this._hp = hp; }
+var Mutant = function(x, y, hp) {
+    this._x = x;
+    this._y = y;
+    this._hp = hp;
+    this.delay = 0;
+}
 Mutant.prototype = new Entity("M", "Mutant", "#000", "#fff");
-Mutant.prototype.act = function() {
+Mutant.prototype.doAction = function() {
     var path = Game.findPathTo(Game.player, this);
     if (path.length <= 1) {
         //No path! Ignore
@@ -70,9 +81,14 @@ Mutant.prototype.act = function() {
     }
 }
 
-var Ranger = function(x, y, hp) { this._x = x; this._y = y; this._hp = hp; }
+var Ranger = function(x, y, hp) {
+    this._x = x;
+    this._y = y;
+    this._hp = hp;
+    this.delay = 0;
+}
 Ranger.prototype = new Entity("}", "Ranger", "#39a", "#222");
-Ranger.prototype.act = function() {
+Ranger.prototype.doAction = function() {
     var range = 5;
     var path = Game.findPathTo(Game.player, this);
     if (path.length <= 1) {
