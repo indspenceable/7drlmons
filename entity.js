@@ -48,12 +48,19 @@ Entity.prototype.takeHit = function(damage, damageType) {
     var diff = this.weaknessAndResistanceDiff(damageType);
     this._hp -= Math.max(damage + diff, 1);
     if (diff != 0) {
-        console.log("This is: ", this);
         this.logVisible(this.weaknessMessage(diff));
     }
     if (this._hp <= 0) {
         this.die()
     }
+}
+
+Entity.prototype.dealDamage = function(target, damage, damageType) {
+    if (this.isType(damageType)) {
+        // Same Type Attack Bonus
+        damage += 1;
+    }
+    target.takeHit(damage, damageType);
 }
 
 Entity.prototype.weaknessAndResistanceDiff = function(type) {
@@ -68,8 +75,6 @@ Entity.prototype.weaknessAndResistanceDiff = function(type) {
 }
 
 Entity.prototype.weaknessMessage = function(amt) {
-    console.log(amt);
-    console.log(this);
     if (amt > 0) {
         return "It's super effective!";
     } else if (amt < 0) {
@@ -114,7 +119,7 @@ Mutant.prototype.doAction = function() {
         //No path! Ignore
     } else if (path.length == 2) {
         Game.logMessage("The massive mutant hits you!");
-        Game.player.takeHit(2, Type.Ground);
+        this.dealDamage(Game.player, 2, Type.Ground);
     } else {
         this.stepTowardsPlayer(path);
     }
@@ -134,7 +139,7 @@ Ranger.prototype.doAction = function() {
         //No path! Ignore
     } else if (path.length <= range+1) {
         Game.logMessage("The Ranger shoots an arrow at you from afar!");
-        Game.player.takeHit(1, Type.Flying);
+        entity.dealDamage(monster, 1, Type.Normal);
     } else {
         this.stepTowardsPlayer(path);
     }

@@ -47,7 +47,7 @@ DirectionalAttack.prototype.enact = function(player) {
         for (var i = 0; i < locationHit.length; i += 1) {
             var x = locationHit[i][0];
             var y = locationHit[i][1];
-            this.hitSpace(x,y);
+            this.hitSpace(player, x, y);
         }
 
         this.finish(player);
@@ -66,7 +66,6 @@ DirectionalAttack.prototype.draw = function(player) {
 
     if ( this.selectedDirection != undefined ) {
         for (var d in targets[this.selectedDirection]) {
-            console.log(d)
             var dx = targets[this.selectedDirection][d][0];
             var dy = targets[this.selectedDirection][d][1];
             Game.display.draw(dx, dy, "*", "#eee", "#333");
@@ -111,7 +110,7 @@ AOEAttack.prototype.enact = function(player) {
         for (var i = 0; i < locationsHit.length; i += 1) {
             var x = locationsHit[i][0];
             var y = locationsHit[i][1];
-            this.hitSpace(x,y);
+            this.hitSpace(player, x, y);
         }
 
         this.finish(player);
@@ -160,11 +159,11 @@ EarthQuake.prototype.animate = function(player, callback) {
     }
     scaledTimeout(locationsHit.length + 1, callback.bind(this));
 }
-EarthQuake.prototype.hitSpace = function(x,y) {
+EarthQuake.prototype.hitSpace = function(entity, x,y) {
     var monster = Game.monsterAt(x,y);
     if (monster !== undefined) {
         Game.logMessage(monster.getName() + " is hit!");
-        monster.takeHit(2, Type.Ground);
+        entity.dealDamage(monster, 2, Type.Ground)
     }
 }
 EarthQuake.prototype.name = function() {return "Earth Quake";}
@@ -190,11 +189,11 @@ FlameThrower.prototype.animate = function(player, callback) {
     scaledTimeout(locationHit.length + 1, callback.bind(this));
 }
 
-FlameThrower.prototype.hitSpace = function(x,y) {
+FlameThrower.prototype.hitSpace = function(entity, x,y) {
     var monster = Game.monsterAt(x,y);
     if (monster !== undefined) {
         Game.logMessage(monster.getName() + " is burned!");
-        monster.takeHit(3, Type.Fire);
+        entity.dealDamage(monster, 3, Type.Fire);
     }
 }
 
@@ -246,11 +245,11 @@ Bubble.prototype.animate = function(player, callback) {
     scaledTimeout(locationHit.length + 1, callback.bind(this));
 }
 
-Bubble.prototype.hitSpace = function(x,y) {
+Bubble.prototype.hitSpace = function(entity, x,y) {
     var monster = Game.monsterAt(x,y);
     if (monster !== undefined) {
         Game.logMessage(monster.getName() + " is hit!");
-        monster.takeHit(3, Type.Water);
+        entity.dealDamage(monster, 3, Type.Water);
     }
 }
 
@@ -283,11 +282,11 @@ Slash.prototype.animate = function(player, callback) {
     }
 }
 
-Slash.prototype.hitSpace = function(x,y) {
+Slash.prototype.hitSpace = function(entity, x,y) {
     var monster = Game.monsterAt(x,y);
     if (monster !== undefined) {
         Game.logMessage(monster.getName() + " is slashed!");
-        monster.takeHit(3, Type.Normal);
+        entity.dealDamage(monster, 3, Type.Normal);
     }
 }
 Slash.prototype.name = function() {return "Slash";}
@@ -327,11 +326,11 @@ SkullBash.prototype.animate = function(player, callback) {
     }
 }
 
-SkullBash.prototype.hitSpace = function(x,y) {
+SkullBash.prototype.hitSpace = function(entity, x,y) {
     var monster = Game.monsterAt(x,y);
     if (monster !== undefined) {
         Game.logMessage(monster.getName() + " is hit!!");
-        monster.takeHit(3, Type.Normal);
+        entity.dealDamage(monster, 3, Type.Normal);
     }
 }
 SkullBash.prototype.finish = function(player) {
