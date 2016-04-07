@@ -28,19 +28,20 @@ Entity.prototype.stepTowardsPlayer = function(path) {
     this.moveInstantlyToAndRedraw(path[1][0], path[1][1]);
 }
 
+Entity.prototype.moveInstantlyToAndTrigger = function(x,y) {
+    this._x = x;
+    this._y = y;
+    Game.getTile(this._x, this._y).trigger(this);
+}
+
 Entity.prototype.moveInstantlyToAndRedraw = function(x,y) {
     var oldX = this._x;
     var oldY = this._y;
-
-    this._x = x;
-    this._y = y;
-
-    Game.getTile(this._x, this._y).trigger(this);
+    this.moveInstantlyToAndTrigger(x,y);
     Game.drawMapTileAt(oldX, oldY);
     Game.drawMapTileAt(x, y);
-
-    // this.draw();
 }
+
 Entity.prototype.isAt = function(x,y) {
     return x == this._x && y == this._y;
 }

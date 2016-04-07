@@ -11,7 +11,7 @@ var Player = function(x, y) {
             new FlameThrower(),
             new Slash(),
             new EarthQuake(),
-            new Dig(),
+            new Fly(),
         ], Type.Fire, Type.Flying),
         new Mon("s", '#aaf', '#000', "Squirtle",  5, [
             new SkullBash(),
@@ -153,10 +153,8 @@ Player.prototype._attemptToSwap = function(slot) {
 }
 
 Player.prototype._doMovement = function(newX, newY) {
-    this._x = newX;
-    this._y = newY;
+    this.moveInstantlyToAndTrigger(newX,newY);
     Game.redrawMap();
-    Game.getTile(this._x, this._y).trigger(this);
     this.finishTurn();
 }
 

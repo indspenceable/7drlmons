@@ -210,50 +210,71 @@ SelectableTargetAttack.prototype.moveCursor = function(direction) {
     this._cursorY += offsetY;
 }
 
-var Dig = function() {
-    this.radius = 4;
+var Fly = function() {
+    this.maxRadius = 6;
+    this.minRadius = 3;
     this.maxPP = 5;
     this.pp = this.maxPP;
 }
-Dig.prototype = new SelectableTargetAttack();
-Dig.prototype.validSelection = function(player) {
+Fly.prototype = new SelectableTargetAttack();
+Fly.prototype.validSelection = function(player) {
     return (SelectableTargetAttack.prototype.validSelection.call(this, player) &&
         (Game.monsterAt(this._cursorX, this._cursorY) === undefined) &&
         (Game.getTile(this._cursorX, this._cursorY).isWalkable()) &&
         (Game._canSee(this._cursorX, this._cursorY)));
 }
-Dig.prototype.name = function() {
-    return "Dig";
+Fly.prototype.name = function() {
+    return "Fly";
 }
-Dig.prototype.targets = function(player){
+Fly.prototype.targets = function(player){
     // list of x,y pairs
     var list = [];
-    for (var a = -this.radius; a < this.radius+1; a+=1) {
-        for (var b = -this.radius; b < this.radius+1; b+=1) {
-            if (Math.abs(a) + Math.abs(b) <= this.radius && (a != 0 || b != 0)) {
+    for (var a = -this.maxRadius; a < this.maxRadius+1; a+=1) {
+        for (var b = -this.maxRadius; b < this.maxRadius+1; b+=1) {
+            var dist = Math.abs(a) + Math.abs(b);
+            if (dist <= this.maxRadius &&
+                dist > this.minRadius &&
+                (a != 0 || b != 0)) {
                 list.push([player.getX() + a, player.getY() + b]);
             }
         }
     }
     return list;
 }
-Dig.prototype.animate = function(player, callback) {
+Fly.prototype.animate = function(player, callback) {
     var delay = 500;
     var scaledTimeout = function(i, cb) {
         setTimeout(function(){ cb(i) }, i*delay);
     }
     scaledTimeout(0, function(){
-        Game.display.draw(player.getX(), player.getY(), '~', '#c90', '#752')
+        Game.display.draw(player.getX(), player.getY(), '%', '#eee', '#555')
     }.bind(this));
-    scaledTimeout(1, function(){
+    scaledTimeout(2, function(){
         player._currentMon.drawAt(this._cursorX, this._cursorY);
     }.bind(this));
-    scaledTimeout(2, callback.bind(this));
+    scaledTimeout(1, function(){
+        for (var i = 0; i < 4; i+=1){
+            var offsets = ROT.DIRS[4][i];
+            var xo = offsets[0];
+            var yo = offsets[1];
+            Game.display.draw(this._cursorX+xo, this._cursorY+yo, '%', '#eee', '#555');
+        }
+    }.bind(this));
+    scaledTimeout(3, callback.bind(this));
 }
 
-Dig.prototype.hitSpace = function(entity, x,y) {
-    entity._x = x;
-    entity._y = y;
+Fly.prototype.hitSpace = function(entity, x, y) {
+    entity.moveInstantlyToAndTrigger(x, y);
+    for (var i = 0; i < 4; i+=1){
+        var offsets = ROT.DIRS[4][i];
+        var xo = offsets[0];
+        var yo = offsets[1];
+        var monster = Game.monsterAt(x+xo, y+yo);
+        if (monster !== undefined) {
+            monster.logVisible(monster.getName() + " is hit on landing!");
+            entity.dealDamage(monster, 2, Type.Flying);
+        }
+    }
 }
 
 var EarthQuake = function() {
