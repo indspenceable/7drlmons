@@ -21,7 +21,7 @@ var EmptySpaceTile = function(x,y) {
     this.x = x;
     this.y = y;
 }
-EmptySpaceTile.prototype = new Tile('.', '#f99', '#000')
+EmptySpaceTile.prototype = new Tile(' ', '#f99', '#333')
 
 
 var WallTile = function(x,y) {

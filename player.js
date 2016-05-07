@@ -5,21 +5,6 @@ var EMPTY_DELEGATE = {
 var Player = function(x, y) {
     this._x = x;
     this._y = y;
-
-    this.mons = [
-        new Mon("C", '#c55', '#000', "Charizard", 15, [
-            new FlameThrower(),
-            new Slash(),
-            new EarthQuake(),
-            new Fly(),
-        ], Type.Fire, Type.Flying),
-        new Mon("s", '#aaf', '#000', "Squirtle",  5, [
-            new SkullBash(),
-            new Bubble(),
-        ], Type.Water),
-    ]
-
-    this._currentMon = this.mons[0];
     this.delay = 0;
 
     this.delegates = [];
@@ -52,7 +37,7 @@ Player.prototype.act = function() {
         Game.redrawMap();
         var timeOut = 0;
         if (this.shouldFall()) {
-            timeOut = 100;
+            timeOut = 20;
         }
         setTimeout(this.finishTurn.bind(this), timeOut);
     }
@@ -208,40 +193,7 @@ Player.prototype._attemptGrippingMovement = function(dirIndex) {
 }
 
 Player.prototype._attemptToSelectAttack = function(attackIndex) {
-    var attack = this._currentMon.moves[attackIndex];
-    if (attack === undefined) {
-        Game.logMessage(this.getName() + " doesn't know that move!");
-    } else if (attack.pp <= 0) {
-        Game.logMessage("out of PP!");
-    } else {
-        attack.reset(this);
-        this.delegates.push(attack);
-    }
     Game.redrawMap();
-}
-
-Player.prototype._attemptToSwap = function(slot) {
-    if (this.mons[slot] !== undefined && this._currentMon != this.mons[slot]) {
-        this.delegates.push(EMPTY_DELEGATE);
-        setTimeout(this.pokeBall1.bind(this), 0);
-        setTimeout(this.pokeBall2.bind(this), 150);
-        setTimeout(this.pokeBall3.bind(this), 300);
-        setTimeout((function(){
-            Game.logMessage("Alright! Come back, " + this.getName() + "!");
-            this._currentMon = this.mons[slot];
-        }).bind(this), 301);
-
-        setTimeout(this.pokeBall2.bind(this), 600);
-        setTimeout(this.pokeBall1.bind(this), 800);
-        setTimeout((function(){
-            Game.logMessage("Go!" +  this.getName() + "!");
-            Game.redrawMap();
-            this.finishTurn();
-        }).bind(this), 1000);
-
-    } else if (this.mons[slot] == this._currentMon) {
-        Game.logMessage(this.getName()  + " is already out!");
-    }
 }
 
 Player.prototype._doMovement = function(newX, newY) {
@@ -258,12 +210,6 @@ Player.prototype.takeHit = function(damage, type) {
 
 //TODO this should live on the mon.
 Player.prototype.defaultMeleeAttack = function() {
-    for (var i = 0; i < this._currentMon.moves.length; i+=1) {
-        var move = this._currentMon.moves[i];
-        if (move.isMelee === true && move.pp > 0) {
-            return move;
-        }
-    }
 }
 
 Player.prototype._doAttack = function(direction, monster) {
@@ -277,7 +223,7 @@ Player.prototype._doAttack = function(direction, monster) {
 }
 
 Player.prototype.draw = function() {
-    this._currentMon.drawAt(this._x, this._y);
+    Game.display.draw(this._x, this._y, '@', '#fff', '#000');
     if (this._currentDelegate() !== undefined) {
         this._currentDelegate().draw(this);
     }
@@ -293,14 +239,10 @@ Player.prototype.finishTurn = function() {
     Game.engine.unlock();
 }
 
-Player.prototype.isType = function(type) {
-    return this._currentMon.isType(type);
-}
-
 Player.prototype.logVisible = function(message) {
-    return this._currentMon.logVisible(message);
+    return Game.logMessage(message);
 }
 
 Player.prototype.getName = function() {
-    return this._currentMon.getName();
+    return "Player";
 }
