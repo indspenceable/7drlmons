@@ -44,6 +44,85 @@ Player.prototype.act = function() {
     if (this.delay > 0) {
         this.delay -= 1;
         this.finishTurn();
+    } else if (this.shouldFall()) {
+        // Falling logic!
+
+        this.delegates.push(EMPTY_DELEGATE);
+        this.moveInstantlyToAndTrigger(this._x,this._y+1);
+        Game.redrawMap();
+        var timeOut = 0;
+        if (this.shouldFall()) {
+            timeOut = 100;
+        }
+        setTimeout(this.finishTurn.bind(this), timeOut);
+    }
+}
+
+var POSSIBLE_GRIPS = [
+    [ 0,  0],
+    [ 1,  0],
+    [ 1,  1],
+    [ 0,  1],
+    [-1,  1],
+    [-1,  0],
+    [-1, -1],
+    [ 0, -1],
+    [ 1, -1],
+]
+
+Player.prototype.gripOffset = function(x, y) {
+    if (this.grip !== undefined) {
+        return [this.grip[0] - x, this.grip[1] - y];
+    }
+}
+
+Player.prototype.filteredGripOffsets = function() {
+    var rtn = [];
+    for (var i = 0; i < POSSIBLE_GRIPS.length; i+=1) {
+        var current = POSSIBLE_GRIPS[i];
+        if (! Game.getTile(current[0] + this._x, current[1] + this._y).isWalkable()) {
+            rtn.push(current);
+        }
+    }
+    return rtn;
+}
+
+Player.prototype.rotateGrip = function() {
+    var findNextOffset = function(grip) {
+        currentPossibleGrips = this.filteredGripOffsets();
+        for (var i = 0; i < currentPossibleGrips.length; i+= 1){
+            if (grip[0] == currentPossibleGrips[i][0] &&
+                grip[1] == currentPossibleGrips[i][1]) {
+                return currentPossibleGrips[(i+1)%currentPossibleGrips.length];
+            }
+        }
+        return currentPossibleGrips[0];
+    }.bind(this);
+
+    var offset = this.gripOffset(this._x, this._y) || [-10, -10];
+    var newGripOffset = findNextOffset(offset);
+    if ( newGripOffset !== undefined ) {
+        this.grip = [newGripOffset[0] + this._x, newGripOffset[1] + this._y];
+    }
+}
+
+Player.prototype.shouldFall = function() {
+    this.releaseGripIfInvalid();
+    if (this.grip !== undefined) {
+        return false;
+    }
+
+    var tile = Game.getTile(this._x, this._y + 1);
+    return tile.isWalkable();
+}
+
+Player.prototype.releaseGripIfInvalid = function() {
+    if (this._grip !== undefined) {
+        var gx = this._grip[0];
+        var gy = this._grip[1];
+        if (Math.abs(this._x - gx) > 1 || Math.abs(this._y - gy) > 1) {
+            this._grip = undefined;
+        }
     }
 }
 
@@ -57,36 +136,74 @@ Player.prototype.handleEvent = function(e) {
 
 Player.prototype.makeMove = function(e) {
     // var movementKeymap = { 38: 0, 33: 1, 39: 2, 34: 3, 40: 4, 35: 5, 37: 6, 36: 7, };
-    var movementKeymap = { 38: 0, 39: 1, 40: 2, 37: 3, }
-    var swapMonKeymap = { 49: 0, 50: 1, 51: 2, 53: 3, 54: 4, 55: 5, };
-    var attackKeymap = { 81: 0, 87: 1, 69: 2, 82: 3, };
+    var nonGripMovementKeymap = {
+        // 38: 0,
+        39: 1,
+        // 40: 2,
+        37: 3,
+    }
+    var grippingMovementKeymap = {
+        38: 0,
+        39: 1,
+        40: 2,
+        37: 3,
+    }
+    // var attackKeymap = { 81: 0, 87: 1, 69: 2, 82: 3, };
 
     var code = e.keyCode;
     /* one of numpad directions? */
-    if (code in movementKeymap) {
+    if (code == 71) {
+        this.rotateGrip();
+        Game.redrawMap();
+    } else if (code == 82) {
+        this.grip = undefined;
+        Game.redrawMap();
+    } else if (code in nonGripMovementKeymap && this.grip === undefined) {
         event.preventDefault()
-        this._attemptMovement(movementKeymap[code]);
-    } else if (code in swapMonKeymap) {
-        this._attemptToSwap(swapMonKeymap[code]);
-    } else if (code in attackKeymap) {
-        this._attemptToSelectAttack(attackKeymap[code]);
+        this._attemptHorizontalMovement(nonGripMovementKeymap[code]);
+    } else if (code in grippingMovementKeymap && this.grip !== undefined) {
+        event.preventDefault()
+        this._attemptGrippingMovement(grippingMovementKeymap[code]);
+    // } else if (code in attackKeymap) {
+    //     this._attemptToSelectAttack(attackKeymap[code]);
     } else if (e.keyCode == 190) {
         // . (wait)
         this.finishTurn()
     }
 }
 
-Player.prototype._attemptMovement = function(dirIndex) {
+Player.prototype._attemptHorizontalMovement = function(dirIndex) {
     var dir = ROT.DIRS[4][dirIndex];
     /* is there a free space? */
     var newX = this._x + dir[0];
     var newY = this._y + dir[1];
 
     var monster = Game.monsterAt(newX, newY)
-    if (monster !== undefined) {
-        this._doAttack(dirIndex, monster);
-    } else if (Game.getTile(newX, newY).isWalkable()) {
+    if (Game.getTile(newX, newY).isWalkable()) {
         this._doMovement(newX, newY)
+    } else if (Game.getTile(this._x, this._y-1).isWalkable() &&
+               Game.getTile(newX,    this._y-1).isWalkable()) {
+        this._doMovement(newX, this._y-1);
+    }
+}
+
+Player.prototype._attemptGrippingMovement = function(dirIndex) {
+    var dir = ROT.DIRS[4][dirIndex];
+    /* is there a free space? */
+    var newX = this._x + dir[0];
+    var newY = this._y + dir[1];
+
+    var monster = Game.monsterAt(newX, newY);
+    var legalOffset = function(offset) {
+        console.log(offset);
+        return (Math.abs(offset[0]) < 2) && (Math.abs(offset[1]) < 2);
+    }
+    if (Game.getTile(newX, newY).isWalkable() && legalOffset(this.gripOffset(newX, newY))) {
+        this._doMovement(newX, newY);
+        if (! Game.getTile(newX, newY+1).isWalkable()) {
+            this.grip = undefined;
+            Game.redrawMap();
+        }
     }
 }
 
@@ -101,31 +218,6 @@ Player.prototype._attemptToSelectAttack = function(attackIndex) {
         this.delegates.push(attack);
     }
     Game.redrawMap();
-}
-
-Player.prototype.pokeBall1 = function() {
-    Game.redrawMap();
-    Game.display.drawText(this._x-2, this._y-2, '/')
-    Game.display.drawText(this._x,   this._y-2, '-')
-    Game.display.drawText(this._x+2, this._y-2, '\\')
-
-    Game.display.drawText(this._x-2, this._y,   '|')
-    Game.display.drawText(this._x+2, this._y,   '|')
-
-    Game.display.drawText(this._x-2, this._y+2, '\\')
-    Game.display.drawText(this._x,   this._y+2, '-')
-    Game.display.drawText(this._x+2, this._y+2, '/')
-}
-Player.prototype.pokeBall2 = function() {
-    Game.redrawMap();
-    Game.display.drawText(this._x-1, this._y-1, '/-\\')
-    Game.display.drawText(this._x-1, this._y,   '|o|')
-    Game.display.drawText(this._x-1, this._y+1,'\\-/')
-}
-
-Player.prototype.pokeBall3 = function() {
-    Game.redrawMap();
-    Game.display.draw(this._x, this._y, "o");
 }
 
 Player.prototype._attemptToSwap = function(slot) {
@@ -188,6 +280,9 @@ Player.prototype.draw = function() {
     this._currentMon.drawAt(this._x, this._y);
     if (this._currentDelegate() !== undefined) {
         this._currentDelegate().draw(this);
+    }
+    if (this.grip !== undefined) {
+        Game.display.draw(this.grip[0], this.grip[1], '+', '#f0f', '#000');
     }
 }
 
