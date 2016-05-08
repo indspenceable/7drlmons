@@ -172,21 +172,27 @@ var Game = {
     },
 
     _calculateFOV: function() {
-        var varRadius = 10;
+        var varRadius = 5;
         var player = this.player;
 
-        var noBlock = function(x,y) {
-            return Math.abs(player.getX() - x) + Math.abs(player.getY() - y) < varRadius;
+        var withinRange = function(x,y) {
+            var dx = (player.getX() - x);
+            var dy = (player.getY() - y);
+            return (dx*dx) + (dy*dy) < (varRadius*varRadius);
         }
         var lightPasses = function(x,y) {
             var tile = Game.getTile(x,y);
             return tile !== undefined && tile.canSeeThrough();
         }
+
+
         var fov = new ROT.FOV.PreciseShadowcasting(lightPasses);
         this.visibleTiles = [];
         fov.compute(this.player.getX(), this.player.getY(), varRadius, function(x,y,r,canSee) {
-            Game.visibleTiles[[x,y]] = true;
-            Game.seenTiles[[x,y]] = true;
+            if (withinRange(x,y)) {
+                Game.visibleTiles[[x,y]] = true;
+                Game.seenTiles[[x,y]] = true;
+            }
         });
     },
 
