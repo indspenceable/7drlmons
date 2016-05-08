@@ -1,4 +1,4 @@
-import {Tile, Empty, Wall} from './tile.jsx';
+import {Empty, Wall, GrippableBackground} from './tile.jsx';
 import Player from './player.jsx'
 
 var Game = {
@@ -88,9 +88,9 @@ var Game = {
                 var tileType = {
                     ' ': Empty,
                     '#': Wall,
-                    '|': Tile.build('|', '#a33', '#333'),
-                    '<': Tile.build('\\', '#a33', '#333'),
-                    '/': Tile.build('/', '#a33', '#333'),
+                    '|': GrippableBackground.build('|', '#a53', '#333'),
+                    '<': GrippableBackground.build('\\', '#a53', '#333'),
+                    '/': GrippableBackground.build('/', '#a53', '#333'),
 
                 }[mapPrototype[y][x]];
                 console.log(Empty);

@@ -35,16 +35,19 @@ class Player extends Entity{
       this.finishTurn();
     } else if (this.shouldFall()) {
       // Falling logic!
-
-      this.delegates.push(EMPTY_DELEGATE);
-      this.moveInstantlyToAndTrigger(this._x,this._y+1);
-      Game.redrawMap();
-      var timeOut = 0;
-      if (this.shouldFall()) {
-        timeOut = 20;
-      }
-      setTimeout(this.finishTurn.bind(this), timeOut);
+      this.doFall();
     }
+  }
+
+  doFall() {
+    this.delegates.push(EMPTY_DELEGATE);
+    this.moveInstantlyToAndTrigger(this._x,this._y+1);
+    Game.redrawMap();
+    var timeOut = 0;
+    if (this.shouldFall()) {
+      timeOut = 20;
+    }
+    setTimeout(this.finishTurn.bind(this), timeOut);
   }
 
   gripOffset(x, y) {
@@ -69,7 +72,7 @@ class Player extends Entity{
     var rtn = [];
     for (var i = 0; i < POSSIBLE_GRIPS.length; i+=1) {
       var current = POSSIBLE_GRIPS[i];
-      if (! Game.getTile(current[0] + this._x, current[1] + this._y).isWalkable()) {
+      if (Game.getTile(current[0] + this._x, current[1] + this._y).isGrippable()) {
         rtn.push(current);
       }
     }
@@ -137,24 +140,28 @@ class Player extends Entity{
         40: 2,
         37: 3,
       }
-    // var attackKeymap = { 81: 0, 87: 1, 69: 2, 82: 3, };
 
     var code = e.keyCode;
     /* one of numpad directions? */
+
     if (code == 71) {
+      // Grip! 'g'
       this.rotateGrip();
       Game.redrawMap();
+
     } else if (code == 82) {
+      // Release grip! 'r'
       this.grip = undefined;
       Game.redrawMap();
+      if (this.shouldFall()) {
+        this.doFall();
+      }
     } else if (code in nonGripMovementKeymap && this.grip === undefined) {
       event.preventDefault()
       this._attemptHorizontalMovement(nonGripMovementKeymap[code]);
     } else if (code in grippingMovementKeymap && this.grip !== undefined) {
       event.preventDefault()
       this._attemptGrippingMovement(grippingMovementKeymap[code]);
-    // } else if (code in attackKeymap) {
-    //     this._attemptToSelectAttack(attackKeymap[code]);
   } else if (e.keyCode == 190) {
         // . (wait)
         this.finishTurn()
@@ -227,12 +234,12 @@ _doAttack(direction, monster) {
   }
 
   draw() {
+    if (this.grip !== undefined) {
+      Game.display.draw(this.grip[0], this.grip[1], '+', '#f0f', '#000');
+    }
     super.draw();
     if (this._currentDelegate() !== undefined) {
       this._currentDelegate().draw(this);
-    }
-    if (this.grip !== undefined) {
-      Game.display.draw(this.grip[0], this.grip[1], '+', '#f0f', '#000');
     }
   }
 

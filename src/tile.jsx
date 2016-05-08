@@ -8,7 +8,7 @@ class Tile {
   }
 
   static build(c1,fg1,bg1) {
-    return class extends Tile {
+    return class extends this {
       constructor(x, y) {
         super(c1,fg1,bg1);
         this.x = x;
@@ -20,8 +20,8 @@ class Tile {
   trigger(){}
 
   canSeeThrough(){ return true; }
-
   isWalkable(){ return true; }
+  isGrippable(){ return false; }
 
   draw(){
     Game.display.draw(this.x, this.y, this.c1, this.fg1, this.bg1);
@@ -32,6 +32,10 @@ class Tile {
   }
 }
 
+class GrippableBackground extends Tile {
+  isGrippable() {return true;}
+}
+
 class Wall extends Tile {
   constructor(x, y) {
     super('#', '#999', '#000');
@@ -40,10 +44,11 @@ class Wall extends Tile {
   }
   isWalkable() { return false; }
   canSeeThrough() { return false; }
+  isGrippable() { return true; }
 }
 
 module.exports = {
-  Tile: Tile,
+  GrippableBackground: GrippableBackground,
   Empty: Tile.build(' ', '#fff', '#333'),
   Wall: Wall,
 }
