@@ -233,7 +233,7 @@ _doAttack(direction, monster) {
   }
 
   draw() {
-    if (this.grip !== undefined) {
+    if (this.grip) {
       Game.display.draw(this.grip[0], this.grip[1], '+', '#f0f', '#000');
     }
     super.draw();
