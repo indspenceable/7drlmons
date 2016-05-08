@@ -1,4 +1,5 @@
 import Entity from './entity.jsx';
+import Game from './game.jsx'
 
 var EMPTY_DELEGATE = {
   handleEvent: function() {},

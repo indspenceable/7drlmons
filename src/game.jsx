@@ -1,4 +1,4 @@
-import {Empty, Wall} from './tile.jsx';
+import {Tile, Empty, Wall} from './tile.jsx';
 import Player from './player.jsx'
 
 var Game = {
@@ -66,7 +66,7 @@ var Game = {
             '                                            ##     ',
             '                                             #     ',
             '                                             ##    ',
-            '                                           ####    ',
+            '                             <  /          ####    ',
             '                              <|            ####   ',
             '                               |/           ####   ',
             '                               |           ####    ',
@@ -88,11 +88,12 @@ var Game = {
                 var tileType = {
                     ' ': Empty,
                     '#': Wall,
-                    '|': Empty,
-                    '<': Empty,
-                    '/': Empty,
+                    '|': Tile.build('|', '#a33', '#333'),
+                    '<': Tile.build('\\', '#a33', '#333'),
+                    '/': Tile.build('/', '#a33', '#333'),
 
                 }[mapPrototype[y][x]];
+                console.log(Empty);
                 currentRow.push(new tileType(x, y));
             }
         }

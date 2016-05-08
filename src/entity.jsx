@@ -1,3 +1,5 @@
+import Game from './game.jsx'
+
 class Entity {
     constructor(c1, name, fg1, bg1) {
         this.c1 = c1;
