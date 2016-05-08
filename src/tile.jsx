@@ -18,18 +18,12 @@ class Tile {
   }
 
   trigger(){}
-
   canSeeThrough(){ return true; }
   isWalkable(){ return true; }
   isGrippable(){ return false; }
 
-  draw(){
-    Game.display.draw(this.x, this.y, this.c1, this.fg1, this.bg1);
-  }
-
-  drawFromMemory(){
-    Game.display.draw(this.x, this.y, this.c1, "#ccc", "#222");
-  }
+  draw(){ Game.display.draw(this.x, this.y, this.c1, this.fg1, this.bg1); }
+  drawFromMemory(){ Game.display.draw(this.x, this.y, this.c1, "#ccc", "#222"); }
 }
 
 class GrippableBackground extends Tile {

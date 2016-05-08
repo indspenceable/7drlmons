@@ -1,5 +1,6 @@
 import Entity from './entity.jsx';
-import Game from './game.jsx'
+import Game from './game.jsx';
+import Input from './input.jsx'
 
 var EMPTY_DELEGATE = {
   handleEvent: function() {},
@@ -130,45 +131,44 @@ class Player extends Entity{
     // var movementKeymap = { 38: 0, 33: 1, 39: 2, 34: 3, 40: 4, 35: 5, 37: 6, 36: 7, };
     var nonGripMovementKeymap = {
         // 38: 0,
-        39: 1,
+        'L': 1,
         // 40: 2,
-        37: 3,
+        'H': 3,
       }
       var grippingMovementKeymap = {
-        38: 0,
-        39: 1,
-        40: 2,
-        37: 3,
+        'K': 0,
+        'L': 1,
+        'J': 2,
+        'H': 3,
       }
-
-    var code = e.keyCode;
     /* one of numpad directions? */
 
-    if (code == 71) {
-      // Grip! 'g'
+    console.log(String.fromCharCode(e.which));
+
+    if (Input.startGrip(e)) {
       this.rotateGrip();
       Game.redrawMap();
-
-    } else if (code == 82) {
-      // Release grip! 'r'
+    } else if (Input.releaseGrip(e)) {
       this.grip = undefined;
       Game.redrawMap();
       if (this.shouldFall()) {
         this.doFall();
       }
-    } else if (code in nonGripMovementKeymap && this.grip === undefined) {
+    } else if (!this.grip && Input.standardDirection(e)) {
+      var str = String.fromCharCode(e.which);
+      event.preventDefault();
+      this._attemptHorizontalMovement(Input.getDirection(e));
+    } else if (this.grip && Input.anyDirection(e)) {
+      var str = String.fromCharCode(e.which);
       event.preventDefault()
-      this._attemptHorizontalMovement(nonGripMovementKeymap[code]);
-    } else if (code in grippingMovementKeymap && this.grip !== undefined) {
-      event.preventDefault()
-      this._attemptGrippingMovement(grippingMovementKeymap[code]);
-  } else if (e.keyCode == 190) {
-        // . (wait)
+      this._attemptGrippingMovement(Input.getDirection(e));
+  } else if (Input.wait(e)) {
         this.finishTurn()
       }
     }
 
     _attemptHorizontalMovement(dirIndex) {
+      console.log(dirIndex);
       var dir = ROT.DIRS[4][dirIndex];
       /* is there a free space? */
       var newX = this._x + dir[0];
