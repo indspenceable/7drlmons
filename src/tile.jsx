@@ -32,7 +32,9 @@ class GrippableBackground extends Tile {
 
 class Wall extends Tile {
   constructor(x, y) {
-    super('#', '#999', '#000');
+    var browns = ['#DEB887', '#CD853F', '#A0522D', '#D2B48C']
+
+    super('#', browns.random(), '#000');
     this.x = x;
     this.y = y;
   }
