@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "set webpack main.jsx --progress --profile --colors",
-    "start": "webpack-dev-server"
+    "start": "webpack-dev-server --inline --hot"
   },
   "dependencies": {
     "babel-core": "^6.8.0",
