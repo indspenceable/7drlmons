@@ -143,86 +143,102 @@ class Player extends Entity{
       }
     /* one of numpad directions? */
 
-    console.log(String.fromCharCode(e.which));
-
-    if (Input.startGrip(e)) {
-      this.rotateGrip();
-      Game.redrawMap();
+    // Entered a direction
+    if (Input.getDirection8(e) !== undefined) {
+      if (e.shiftKey) {
+        // Try to grip in that direction
+        var dir = ROT.DIRS[8][Input.getDirection8(e)];
+        this._attemptSetGrip(dir);
+      } else {
+        if (this.grip) {
+          var str = String.fromCharCode(e.which);
+          event.preventDefault();
+          this._attemptGrippingMovement(Input.getDirection8(e));
+        } else if(Input.groundDirection) {
+          var str = String.fromCharCode(e.which);
+          event.preventDefault();
+          this._attemptHorizontalMovement(Input.getDirection8(e));
+        }
+      }
+    } else if (Input.setGrip(e)) {
+      this._attemptSetGrip([0, 0]);
     } else if (Input.releaseGrip(e)) {
       this.grip = undefined;
       Game.redrawMap();
       if (this.shouldFall()) {
         this.doFall();
       }
-    } else if (!this.grip && Input.standardDirection(e)) {
-      var str = String.fromCharCode(e.which);
-      event.preventDefault();
-      this._attemptHorizontalMovement(Input.getDirection(e));
-    } else if (this.grip && Input.anyDirection(e)) {
-      var str = String.fromCharCode(e.which);
-      event.preventDefault()
-      this._attemptGrippingMovement(Input.getDirection(e));
-  } else if (Input.wait(e)) {
-        this.finishTurn()
-      }
+    } else if (Input.wait(e)) {
+      this.finishTurn()
     }
+  }
 
-    _attemptHorizontalMovement(dirIndex) {
-      console.log(dirIndex);
-      var dir = ROT.DIRS[4][dirIndex];
-      /* is there a free space? */
-      var newX = this._x + dir[0];
-      var newY = this._y + dir[1];
+  _attemptSetGrip(dir) {
+    /* is there a free space? */
+    var targetX = this._x + dir[0];
+    var targetY = this._y + dir[1];
 
-      var monster = Game.monsterAt(newX, newY)
-      if (Game.getTile(newX, newY).isWalkable()) {
-        this._doMovement(newX, newY)
-      } else if (Game.getTile(this._x, this._y-1).isWalkable() &&
-       Game.getTile(newX,    this._y-1).isWalkable()) {
-        this._doMovement(newX, this._y-1);
-      }
-    }
-
-    _attemptGrippingMovement(dirIndex) {
-      var dir = ROT.DIRS[4][dirIndex];
-      /* is there a free space? */
-      var newX = this._x + dir[0];
-      var newY = this._y + dir[1];
-
-      var monster = Game.monsterAt(newX, newY);
-      var legalOffset = function(offset) {
-        return (Math.abs(offset[0]) < 2) && (Math.abs(offset[1]) < 2);
-      }
-      if (Game.getTile(newX, newY).isWalkable() && legalOffset(this.gripOffset(newX, newY))) {
-        this._doMovement(newX, newY);
-        if (! Game.getTile(newX, newY+1).isWalkable()) {
-          this.grip = undefined;
-          Game.redrawMap();
-        }
-      }
-    }
-
-    _attemptToSelectAttack(attackIndex) {
+    if (Game.getTile(targetX, targetY).isGrippable()) {
+      this.grip = [targetX, targetY];
       Game.redrawMap();
     }
+  }
 
-    _doMovement(newX, newY) {
-      this.moveInstantlyToAndTrigger(newX,newY);
-      Game.redrawMap();
-      this.finishTurn();
+  _attemptHorizontalMovement(dirIndex) {
+    var dir = ROT.DIRS[8][dirIndex];
+    /* is there a free space? */
+    var newX = this._x + dir[0];
+    var newY = this._y + dir[1];
+    var monster = Game.monsterAt(newX, newY);
+
+    if (Game.getTile(newX, newY).isWalkable()) {
+      this._doMovement(newX, newY)
+    } else if (Game.getTile(this._x, this._y-1).isWalkable() &&
+     Game.getTile(newX,    this._y-1).isWalkable()) {
+      this._doMovement(newX, this._y-1);
     }
+  }
 
-    takeHit(damage, type) {
-      var rtn = Entity.prototype.takeHit.call(this._currentMon, damage, type);
-      Game._drawUI();
-      return rtn;
+  _attemptGrippingMovement(dirIndex) {
+    var dir = ROT.DIRS[8][dirIndex];
+    /* is there a free space? */
+    var newX = this._x + dir[0];
+    var newY = this._y + dir[1];
+
+    var monster = Game.monsterAt(newX, newY);
+    var legalOffset = function(offset) {
+      return (Math.abs(offset[0]) < 2) && (Math.abs(offset[1]) < 2);
     }
+    if (Game.getTile(newX, newY).isWalkable() && legalOffset(this.gripOffset(newX, newY))) {
+      this._doMovement(newX, newY);
+      if (! Game.getTile(newX, newY+1).isWalkable()) {
+        this.grip = undefined;
+        Game.redrawMap();
+      }
+    }
+  }
 
-//TODO this should live on the mon.
-defaultMeleeAttack() {
-}
+  _attemptToSelectAttack(attackIndex) {
+    Game.redrawMap();
+  }
 
-_doAttack(direction, monster) {
+  _doMovement(newX, newY) {
+    this.moveInstantlyToAndTrigger(newX,newY);
+    Game.redrawMap();
+    this.finishTurn();
+  }
+
+  takeHit(damage, type) {
+    var rtn = Entity.prototype.takeHit.call(this._currentMon, damage, type);
+    Game._drawUI();
+    return rtn;
+  }
+
+  //TODO this should live on the mon.
+  defaultMeleeAttack() {
+  }
+
+  _doAttack(direction, monster) {
     // TODO woop
     var move = this.defaultMeleeAttack();
     if (move !== undefined) {
