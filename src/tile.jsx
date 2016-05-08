@@ -76,3 +76,8 @@ FireTile.prototype.trigger = function(entity) {
         entity.logVisible(entity.getName() + " is by a warm feeling.")
     }
 }
+
+module.exports = {
+    Empty: EmptySpaceTile,
+    Wall: WallTile,
+}

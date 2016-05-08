@@ -1,3 +1,6 @@
+import {Empty, Wall} from './tile.jsx';
+import Player from './player.jsx'
+
 var Game = {
     display: null,
     map: {},
@@ -82,13 +85,12 @@ var Game = {
             var currentRow = [];
             this.map.push(currentRow);
             for (var x = 0; x < mapPrototype[0].length; x+=1) {
-                console.log(mapPrototype[0], mapPrototype[0].length)
                 var tileType = {
-                    ' ': EmptySpaceTile,
-                    '#': WallTile,
-                    '|': WaterTile,
-                    '\\': FireTile,
-                    '/': WaterTile,
+                    ' ': Empty,
+                    '#': Wall,
+                    '|': Empty,
+                    '<': Empty,
+                    '/': Empty,
 
                 }[mapPrototype[y][x]];
                 currentRow.push(new tileType(x, y));
@@ -169,7 +171,7 @@ var Game = {
     },
 
     _calculateFOV: function() {
-        varRadius = 10;
+        var varRadius = 10;
         var player = this.player;
 
         var noBlock = function(x,y) {
@@ -304,3 +306,5 @@ var Game = {
         this._clearAndDrawMessageLog();
     },
 };
+
+export default Game;

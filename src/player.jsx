@@ -1,3 +1,5 @@
+import Entity from './entity.jsx';
+
 var EMPTY_DELEGATE = {
     handleEvent: function() {},
     draw: function() {},
@@ -74,7 +76,7 @@ Player.prototype.filteredGripOffsets = function() {
 
 Player.prototype.rotateGrip = function() {
     var findNextOffset = function(grip) {
-        currentPossibleGrips = this.filteredGripOffsets();
+        var currentPossibleGrips = this.filteredGripOffsets();
         for (var i = 0; i < currentPossibleGrips.length; i+= 1){
             if (grip[0] == currentPossibleGrips[i][0] &&
                 grip[1] == currentPossibleGrips[i][1]) {
@@ -246,3 +248,6 @@ Player.prototype.logVisible = function(message) {
 Player.prototype.getName = function() {
     return "Player";
 }
+
+
+export default Player;

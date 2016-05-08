@@ -1,10 +1,8 @@
-var Entity = function(c1, name, fg1, bg1, type1, type2) {
+var Entity = function(c1, name, fg1, bg1) {
     this.c1 = c1;
     this._name = name;
     this.fg1 = fg1;
     this.bg1 = bg1;
-    this._type1 = type1;
-    this._type2 = type2;
 }
 
 Entity.prototype.getX = function() {
@@ -56,31 +54,8 @@ Entity.prototype.takeHit = function(damage, damageType) {
     }
 }
 
-Entity.prototype.dealDamage = function(target, damage, damageType) {
-    if (this.isType(damageType)) {
-        // Same Type Attack Bonus
-        damage += 1;
-    }
-    target.takeHit(damage, damageType);
-}
-
-Entity.prototype.weaknessAndResistanceDiff = function(type) {
-    var differential = 0;
-    if (this._type1 !== undefined) {
-        differential += this._type1[type.name]
-    }
-    if (this._type2 !== undefined) {
-        differential += this._type2[type.name]
-    }
-    return differential;
-}
-
-Entity.prototype.weaknessMessage = function(amt) {
-    if (amt > 0) {
-        return "It's super effective!";
-    } else if (amt < 0) {
-        return "It's not very effective.";
-    }
+Entity.prototype.dealDamage = function(target, damage) {
+    target.takeHit(damage);
 }
 
 Entity.prototype.die = function() {
@@ -97,9 +72,6 @@ Entity.prototype.act = function() {
         this.doAction();
     }
 }
-Entity.prototype.isType = function(type) {
-    return this._type1 == type || this._type2 == type;
-}
 
 Entity.prototype.logVisible = function(message) {
     if (Game._canSee(this._x, this._y)) {
@@ -113,7 +85,7 @@ var Mutant = function(x, y, hp) {
     this._hp = hp;
     this.delay = 0;
 }
-Mutant.prototype = new Entity("M", "Mutant", "#000", "#fff", Type.Ground);
+Mutant.prototype = new Entity("M", "Mutant", "#000", "#fff");
 Mutant.prototype.doAction = function() {
     var path = Game.findPathTo(Game.player, this);
     if (path.length <= 1) {
@@ -132,7 +104,7 @@ var Ranger = function(x, y, hp) {
     this._hp = hp;
     this.delay = 0;
 }
-Ranger.prototype = new Entity("}", "Ranger", "#39a", "#222", Type.Flying);
+Ranger.prototype = new Entity("}", "Ranger", "#39a", "#222");
 Ranger.prototype.doAction = function() {
     var range = 5;
     var path = Game.findPathTo(Game.player, this);
@@ -145,3 +117,5 @@ Ranger.prototype.doAction = function() {
         this.stepTowardsPlayer(path);
     }
 }
+
+export default Entity;
