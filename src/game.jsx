@@ -93,7 +93,6 @@ var Game = {
                     '/': GrippableBackground.build('/', '#a53', '#333'),
 
                 }[mapPrototype[y][x]];
-                console.log(Empty);
                 currentRow.push(new tileType(x, y));
             }
         }

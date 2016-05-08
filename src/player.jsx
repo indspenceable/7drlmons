@@ -191,7 +191,6 @@ class Player extends Entity{
 
       var monster = Game.monsterAt(newX, newY);
       var legalOffset = function(offset) {
-        console.log(offset);
         return (Math.abs(offset[0]) < 2) && (Math.abs(offset[1]) < 2);
       }
       if (Game.getTile(newX, newY).isWalkable() && legalOffset(this.gripOffset(newX, newY))) {
