@@ -1,6 +1,10 @@
 var checkKeys = (chs) => {
   return e => Array.from(chs).includes(String.fromCharCode(e.which))
 }
+var checkCode = (codes) => {
+  console.log(Array.from(codes))
+  return e => Array.from(codes).includes(e.keyCode)
+}
 
 var getDirection4 = (e) => {
   return {
@@ -15,9 +19,9 @@ var getDirection8 = (e) => {
     'K': 0,
     'U': 1,
     'L': 2,
-    'M': 3,
+    'N': 3,
     'J': 4,
-    'N': 5,
+    'B': 5,
     'H': 6,
     'Y': 7,
   }[String.fromCharCode(e.which)]
@@ -30,7 +34,7 @@ var Input = {
   releaseGrip: checkKeys(['R', 'F']),
   groundDirection: checkKeys(['H', 'L']),
   anyDirection: checkKeys(['H','J','K','L']),
-  wait: checkKeys('.'),
+  wait: checkCode([190]),
 }
 
 export default Input;

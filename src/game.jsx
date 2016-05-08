@@ -212,7 +212,7 @@ var Game = {
         this.display.drawText(x, y, "@) " + this.player.getName());
         y+=1;
         this._clearUIRow(x, y, width)
-        this._drawMeter(x, y, 50, 100, "Heat", 10);
+        this._drawMeter(x, y, this.player.gripStrength, 100, "Grip Strength", 20);
 /*
         this._clearUIRow(x, y, width)
         this.display.drawText(x, y, "HP: " + this.player.getHp() + "/" + this.player.getMaxHp());
@@ -249,14 +249,16 @@ var Game = {
         if (current > max) {
             current = max;
         }
+        if (current < 0) {
+            current = 0;
+        }
 
-
-        var currentScaled = (current*numberOfPips/max);
+        var currentScaled = Math.floor(current*numberOfPips/max);
         var maxScaled = numberOfPips;
 
         this.display.drawText(x, y, "[" +
-            Array(currentScaled+1).join("=") +
-            Array(maxScaled - currentScaled + 1).join(" ") +
+            "=".repeat(currentScaled) +
+            " ".repeat(maxScaled - currentScaled) +
             "]", "#000", "#000");
     },
 

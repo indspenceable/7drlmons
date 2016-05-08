@@ -15,6 +15,7 @@ class Player extends Entity{
     this.delay = 0;
 
     this.delegates = [];
+    this.gripStrength = 50;
   }
 
   _currentDelegate() {
@@ -57,65 +58,33 @@ class Player extends Entity{
     }
   }
 
-  filteredGripOffsets() {
-    var POSSIBLE_GRIPS = [
-      [ 0,  0],
-      [ 1,  0],
-      [ 1,  1],
-      [ 0,  1],
-      [-1,  1],
-      [-1,  0],
-      [-1, -1],
-      [ 0, -1],
-      [ 1, -1],
-    ]
-
-    var rtn = [];
-    for (var i = 0; i < POSSIBLE_GRIPS.length; i+=1) {
-      var current = POSSIBLE_GRIPS[i];
-      if (Game.getTile(current[0] + this._x, current[1] + this._y).isGrippable()) {
-        rtn.push(current);
-      }
-    }
-    return rtn;
-  }
-
-  rotateGrip() {
-    var findNextOffset = function(grip) {
-      var currentPossibleGrips = this.filteredGripOffsets();
-      for (var i = 0; i < currentPossibleGrips.length; i+= 1){
-        if (grip[0] == currentPossibleGrips[i][0] &&
-          grip[1] == currentPossibleGrips[i][1]) {
-            return currentPossibleGrips[(i+1)%currentPossibleGrips.length];
-          }
-        }
-      return currentPossibleGrips[0];
-    }.bind(this);
-
-  var offset = this.gripOffset(this._x, this._y) || [-10, -10];
-    var newGripOffset = findNextOffset(offset);
-    if ( newGripOffset !== undefined ) {
-      this.grip = [newGripOffset[0] + this._x, newGripOffset[1] + this._y];
-    }
+  currentlySupported() {
+    var tile = Game.getTile(this._x, this._y+1);
+    return !tile.isWalkable();
   }
 
   shouldFall() {
     this.releaseGripIfInvalid();
-    if (this.grip !== undefined) {
+    this.releaseGripIfStrengthDepleted();
+    if (this.grip) {
       return false;
     }
-
-    var tile = Game.getTile(this._x, this._y + 1);
-    return tile.isWalkable();
+    return !this.currentlySupported();
   }
 
   releaseGripIfInvalid() {
-    if (this._grip !== undefined) {
-      var gx = this._grip[0];
-      var gy = this._grip[1];
+    if (this.grip !== undefined) {
+      var gx = this.grip[0];
+      var gy = this.grip[1];
       if (Math.abs(this._x - gx) > 1 || Math.abs(this._y - gy) > 1) {
-        this._grip = undefined;
+        this.grip = undefined;
       }
+    }
+  }
+
+  releaseGripIfStrengthDepleted() {
+    if (this.grip && this.gripStrength <= 0) {
+      this.grip = undefined;
     }
   }
 
@@ -128,21 +97,6 @@ class Player extends Entity{
   }
 
   makeMove(e) {
-    // var movementKeymap = { 38: 0, 33: 1, 39: 2, 34: 3, 40: 4, 35: 5, 37: 6, 36: 7, };
-    var nonGripMovementKeymap = {
-        // 38: 0,
-        'L': 1,
-        // 40: 2,
-        'H': 3,
-      }
-      var grippingMovementKeymap = {
-        'K': 0,
-        'L': 1,
-        'J': 2,
-        'H': 3,
-      }
-    /* one of numpad directions? */
-
     // Entered a direction
     if (Input.getDirection8(e) !== undefined) {
       if (e.shiftKey) {
@@ -154,7 +108,7 @@ class Player extends Entity{
           var str = String.fromCharCode(e.which);
           event.preventDefault();
           this._attemptGrippingMovement(Input.getDirection8(e));
-        } else if(Input.groundDirection) {
+        } else if(Input.groundDirection(e)) {
           var str = String.fromCharCode(e.which);
           event.preventDefault();
           this._attemptHorizontalMovement(Input.getDirection8(e));
@@ -194,7 +148,7 @@ class Player extends Entity{
     if (Game.getTile(newX, newY).isWalkable()) {
       this._doMovement(newX, newY)
     } else if (Game.getTile(this._x, this._y-1).isWalkable() &&
-     Game.getTile(newX,    this._y-1).isWalkable()) {
+      Game.getTile(newX, this._y-1).isWalkable()) {
       this._doMovement(newX, this._y-1);
     }
   }
@@ -210,11 +164,13 @@ class Player extends Entity{
       return (Math.abs(offset[0]) < 2) && (Math.abs(offset[1]) < 2);
     }
     if (Game.getTile(newX, newY).isWalkable() && legalOffset(this.gripOffset(newX, newY))) {
-      this._doMovement(newX, newY);
-      if (! Game.getTile(newX, newY+1).isWalkable()) {
+      this.moveInstantlyToAndTrigger(newX,newY);
+      console.log("now are we supported? ", this.currentlySupported());
+      if (this.currentlySupported()) {
         this.grip = undefined;
-        Game.redrawMap();
       }
+      Game.redrawMap();
+      this.finishTurn();
     }
   }
 
@@ -258,9 +214,19 @@ class Player extends Entity{
     }
   }
 
+  gainOrLoseGripStrength() {
+    console.log('gain or lose!');
+    if (this.currentlySupported()) {
+      this.gripStrength += 1;
+    } else if (this.grip && !this.currentlySupported()) {
+      this.gripStrength -= 3;
+    }
+  }
+
   finishTurn() {
     Game._drawUI();
     this.delegates = [];
+    this.gainOrLoseGripStrength();
     window.removeEventListener("keydown", this);
     Game.engine.unlock();
   }
