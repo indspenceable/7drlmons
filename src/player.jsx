@@ -165,7 +165,6 @@ class Player extends Entity{
     }
     if (Game.getTile(newX, newY).isWalkable() && legalOffset(this.gripOffset(newX, newY))) {
       this.moveInstantlyToAndTrigger(newX,newY);
-      console.log("now are we supported? ", this.currentlySupported());
       if (this.currentlySupported()) {
         this.grip = undefined;
       }
