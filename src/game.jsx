@@ -96,7 +96,7 @@ var Game = {
                 currentRow.push(new tileType(x, y));
             }
         }
-        this._createPlayer(20,5);
+        this._createPlayer(30,1);
         // this._createMonster(10,5,5, Mutant);
     },
 
@@ -183,7 +183,6 @@ var Game = {
             var tile = Game.getTile(x,y);
             return tile !== undefined && tile.canSeeThrough();
         }
-
 
         var fov = new ROT.FOV.PreciseShadowcasting(lightPasses);
         this.visibleTiles = [];
