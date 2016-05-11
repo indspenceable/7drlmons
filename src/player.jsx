@@ -329,7 +329,9 @@ class Player extends Entity{
         console.log("Bah!");
         console.log(bollocks);
       } else {
-        console.log(newKnot, lastKnot);
+        if (this.knots.length > 300) {
+          this.fail();
+        }
         this.knots.push(newKnot);
         this.addRequiredKnot();
       }
@@ -369,15 +371,17 @@ class Player extends Entity{
       //   return true;
       // }
 
-      secondToLastRopeSegement.splice(0,1);
       const reversedSegment = secondToLastRopeSegement.reverse();
 
-
       if (reversedSegment.length < 3) {
-        console.log("WOW!");
-        this.knots.splice(this.knots.length-1, 1);
-        // Re-add a knot if needed.
-        this.addRequiredKnot();
+        if (reversedSegment.every(p=>{
+            console.log(p);
+            return this.validConnection(this.bresenhem(...p, this._x, this._y));
+          })) {
+          this.knots.splice(this.knots.length-1, 1);
+          // Re-add a knot if needed.
+          // this.addRequiredKnot();
+        }
       } else {
         for (var i = 0; i < reversedSegment.length; i+=1) {
           const checkPoint = reversedSegment[i];
