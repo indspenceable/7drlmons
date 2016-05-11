@@ -273,7 +273,7 @@ class Player extends Entity{
   }
 
   pointOfError(line) {
-    return line.find(p => !Game.getTile(p[0], p[1]).isWalkable());
+    return line.find(p => !Game.getTile(...p).isWalkable());
   }
 
   trimKnots() {
@@ -290,26 +290,50 @@ class Player extends Entity{
 
   addRequiredKnot() {
     const lastKnot = this.knots[this.knots.length-1];
-    const knotToMe = this.bresenhem(this._x, this._y, ...lastKnot);
+    const knotToMe = this.bresenhem(...lastKnot, this._x, this._y);
     const poe = this.pointOfError(knotToMe);
     if (!poe) {
       return
     }
 
-    // All directions -
-    //     sort by distance to the previous point
-    //     find the first that has a line to the previous point
+    //Check all adjacent spaces for one thats -
+    const sortedFilteredPoints = Array.from(ROT.DIRS[8]).sort(p =>{
+      Math.abs(p[0]-lastKnot[0]) + Math.abs(p[1]-lastKnot[1])
+    }).filter(p => {
+      const pos = [poe[0] + p[0], poe[1]+p[1]];
+      return pos[0] != lastKnot[0] || pos[1] != lastKnot[1];
+    }).filter(p => {
+      console.log('a');
+      const pos = [poe[0] + p[0], poe[1]+p[1]];
+      return Game.getTile(...pos).isWalkable();
+    }).filter(p => {
+      console.log('b');
+      const pos = [poe[0] + p[0], poe[1]+p[1]];
+      const line = this.bresenhem(...lastKnot, ...pos);
+      return this.validConnection(line);
+    })
+    // closest to the previous knot
+    // Has a path to the last knot
+    const point = sortedFilteredPoints.find(p => {
+      const pos = [poe[0] + p[0], poe[1]+p[1]];
+      return this.validConnection(this.bresenhem(...pos, this._x, this._y));
+    });
 
-    const [ox, oy] = Array.from(ROT.DIRS[8])
-      .sort(p => Math.abs(p[0]-lastKnot[0]) + Math.abs(p[1]-lastKnot[1]))
-      .find(p => {
-        const pos = [poe[0] + p[0], poe[1]+p[1]];
-        return Game.getTile(...pos).isWalkable() &&
-          this.validConnection(this.bresenhem(...pos, ...lastKnot)) &&
-          this.validConnection(this.bresenhem(...pos, this._x, this._y))
-      });
-    this.knots.push([poe[0] + ox, poe[1] + oy]);
-    this.trimKnots();
+    if (point){
+      this.knots.push([poe[0] + point[0], poe[1] + point[1]]);
+      this.trimKnots();
+    } else {
+      const point2 = sortedFilteredPoints[0];
+      const newKnot =[poe[0] + point2[0], poe[1] + point2[1]];
+      if (newKnot[0] == lastKnot[0] && newKnot[1] == lastKnot[1]) {
+        console.log("Bah!");
+        console.log(bollocks);
+      } else {
+        console.log(newKnot, lastKnot);
+        this.knots.push(newKnot);
+        this.addRequiredKnot();
+      }
+    }
   }
 
   trimLastKnotOld() {
@@ -363,12 +387,10 @@ class Player extends Entity{
           const drawAll = line => line.forEach(drawOne);
 
           if (!this.validConnection(checkToMe) || !this.validConnection(checkToPrev)) {
-            console.log("best one is at ...", i)
             if (i <= 1) {
               return false;
             } else {
               this.knots[this.knots.length-1] = reversedSegment[i-1];
-              console.log('did we do it?')
               return true;
             }
           }
@@ -400,6 +422,7 @@ class Player extends Entity{
     this.updateKnots();
     window.updateKnots = this.updateKnots.bind(this);
     window.removeEventListener("keydown", this);
+    Game.redrawMap();
     Game.engine.unlock();
   }
 
