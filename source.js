@@ -138,7 +138,7 @@
 	                currentRow.push(new tileType(x, y));
 	            }
 	        }
-	        this._createPlayer(20, 5);
+	        this._createPlayer(30, 1);
 	        // this._createMonster(10,5,5, Mutant);
 	    },
 
@@ -500,6 +500,8 @@
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
+
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
@@ -534,6 +536,8 @@
 
 	    this.delegates = [];
 	    this.gripStrength = 50;
+
+	    this.knots = [];
 	  }
 
 	  _createClass(Player, [{
@@ -638,11 +642,11 @@
 	        } else {
 	          if (this.grip) {
 	            var str = String.fromCharCode(e.which);
-	            event.preventDefault();
+	            e.preventDefault();
 	            this._attemptGrippingMovement(_inputJsx2['default'].getDirection8(e));
 	          } else if (_inputJsx2['default'].groundDirection(e)) {
 	            var str = String.fromCharCode(e.which);
-	            event.preventDefault();
+	            e.preventDefault();
 	            this._attemptHorizontalMovement(_inputJsx2['default'].getDirection8(e));
 	          }
 	        }
@@ -656,7 +660,19 @@
 	        }
 	      } else if (_inputJsx2['default'].wait(e)) {
 	        this.finishTurn();
+	      } else if (_inputJsx2['default'].piton(e)) {
+	        if (this.knots.length == 0) {
+	          this.addKnot();
+	        } else {
+	          this.knots = [];
+	          _gameJsx2['default'].redrawMap();
+	        }
 	      }
+	    }
+	  }, {
+	    key: 'addKnot',
+	    value: function addKnot() {
+	      this.knots.push([this._x, this._y]);
 	    }
 	  }, {
 	    key: '_attemptSetGrip',
@@ -699,7 +715,6 @@
 	      };
 	      if (_gameJsx2['default'].getTile(newX, newY).isWalkable() && legalOffset(this.gripOffset(newX, newY))) {
 	        this.moveInstantlyToAndTrigger(newX, newY);
-	        console.log("now are we supported? ", this.currentlySupported());
 	        if (this.currentlySupported()) {
 	          this.grip = undefined;
 	        }
@@ -748,6 +763,7 @@
 	      if (this.grip) {
 	        _gameJsx2['default'].display.draw(this.grip[0], this.grip[1], '+', '#f0f', '#000');
 	      }
+	      this.drawRope();
 	      _get(Object.getPrototypeOf(Player.prototype), 'draw', this).call(this);
 	      if (this._currentDelegate() !== undefined) {
 	        this._currentDelegate().draw(this);
@@ -756,11 +772,227 @@
 	  }, {
 	    key: 'gainOrLoseGripStrength',
 	    value: function gainOrLoseGripStrength() {
-	      console.log('gain or lose!');
 	      if (this.currentlySupported()) {
 	        this.gripStrength += 1;
 	      } else if (this.grip && !this.currentlySupported()) {
 	        this.gripStrength -= 3;
+	      }
+	    }
+
+	    // rope related stuff
+
+	  }, {
+	    key: 'bresenhem',
+	    value: function bresenhem(x0, y0, x1, y1) {
+	      var dx = Math.abs(x1 - x0);
+	      var dy = Math.abs(y1 - y0);
+
+	      var sx = x0 < x1 ? 1 : -1;
+	      var sy = y0 < y1 ? 1 : -1;
+	      var err = dx - dy;
+
+	      var line = [];
+	      for (var i = 0; i < 1000; i += 1) {
+	        line.push([x0, y0]); // Do what you need to for this
+
+	        if (x0 == x1 && y0 == y1) return line;
+	        var e2 = 2 * err;
+	        if (e2 > -dy) {
+	          err -= dy;x0 += sx;
+	        }
+	        if (e2 < dx) {
+	          err += dx;y0 += sy;
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'drawRope',
+	    value: function drawRope() {
+	      var knotsAndMe = this.knots.concat([[this._x, this._y]]);
+	      for (var i = 0; i < this.knots.length; i += 1) {
+	        var line = this.bresenhem.apply(this, _toConsumableArray(knotsAndMe[i]).concat(_toConsumableArray(knotsAndMe[i + 1])));
+	        line.forEach(function (p) {
+	          _gameJsx2['default'].display.draw(p[0], p[1], '*', '#fff', '#000');
+	        });
+	        _gameJsx2['default'].display.draw(line[0][0], line[0][1], '+', '#f00', '#000');
+	      }
+	    }
+	  }, {
+	    key: 'validConnection',
+	    value: function validConnection(line) {
+	      return !this.pointOfError(line);
+	    }
+	  }, {
+	    key: 'pointOfError',
+	    value: function pointOfError(line) {
+	      return line.find(function (p) {
+	        return !_gameJsx2['default'].getTile.apply(_gameJsx2['default'], _toConsumableArray(p)).isWalkable();
+	      });
+	    }
+	  }, {
+	    key: 'trimKnots',
+	    value: function trimKnots() {
+	      for (var i = 0; i < this.knots.length - 2; i += 1) {
+	        var a = this.knots[i + 0];
+	        // var b = this.knots[i+1];
+	        var c = this.knots[i + 2];
+	        if (this.validConnection(this.bresenhem.apply(this, _toConsumableArray(a).concat(_toConsumableArray(c))))) {
+	          this.knots.splice(i + 1, 1);
+	          return this.trimKnots();
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'addRequiredKnot',
+	    value: function addRequiredKnot() {
+	      var _this = this;
+
+	      var lastKnot = this.knots[this.knots.length - 1];
+	      var knotToMe = this.bresenhem.apply(this, _toConsumableArray(lastKnot).concat([this._x, this._y]));
+	      var poe = this.pointOfError(knotToMe);
+	      if (!poe) {
+	        return;
+	      }
+
+	      //Check all adjacent spaces for one thats -
+	      var sortedFilteredPoints = Array.from(ROT.DIRS[8]).sort(function (p) {
+	        Math.abs(p[0] - lastKnot[0]) + Math.abs(p[1] - lastKnot[1]);
+	      }).filter(function (p) {
+	        var pos = [poe[0] + p[0], poe[1] + p[1]];
+	        return pos[0] != lastKnot[0] || pos[1] != lastKnot[1];
+	      }).filter(function (p) {
+	        console.log('a');
+	        var pos = [poe[0] + p[0], poe[1] + p[1]];
+	        return _gameJsx2['default'].getTile.apply(_gameJsx2['default'], pos).isWalkable();
+	      }).filter(function (p) {
+	        console.log('b');
+	        var pos = [poe[0] + p[0], poe[1] + p[1]];
+	        var line = _this.bresenhem.apply(_this, _toConsumableArray(lastKnot).concat(pos));
+	        return _this.validConnection(line);
+	      });
+	      // closest to the previous knot
+	      // Has a path to the last knot
+	      var point = sortedFilteredPoints.find(function (p) {
+	        var pos = [poe[0] + p[0], poe[1] + p[1]];
+	        return _this.validConnection(_this.bresenhem.apply(_this, pos.concat([_this._x, _this._y])));
+	      });
+
+	      if (point) {
+	        this.knots.push([poe[0] + point[0], poe[1] + point[1]]);
+	        this.trimKnots();
+	      } else {
+	        var point2 = sortedFilteredPoints[0];
+	        var newKnot = [poe[0] + point2[0], poe[1] + point2[1]];
+	        if (newKnot[0] == lastKnot[0] && newKnot[1] == lastKnot[1]) {
+	          console.log("Bah!");
+	          console.log(bollocks);
+	        } else {
+	          if (this.knots.length > 300) {
+	            this.fail();
+	          }
+	          this.knots.push(newKnot);
+	          this.addRequiredKnot();
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'trimLastKnotOld',
+	    value: function trimLastKnotOld() {
+	      if (this.knots.length > 1) {
+	        var a = this.knots[this.knots.length - 2];
+	        var b = this.knots[this.knots.length - 1];
+	        var c = [this._x, this._y];
+
+	        var oldToMe = this.bresenhem.apply(this, _toConsumableArray(a).concat(c));
+	        var poe = this.pointOfError(oldToMe);
+	        if (!poe) {
+	          var mid = oldToMe[Math.floor(oldToMe.length / 2)];
+	          var midToCurrent = this.bresenhem.apply(this, _toConsumableArray(b).concat(_toConsumableArray(mid)));
+
+	          if (this.validConnection(midToCurrent)) {
+	            this.knots.splice(this.knots.length - 1, 1);
+	          }
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'trimLastKnot',
+	    value: function trimLastKnot(i) {
+	      var _this2 = this;
+
+	      // if we have more than one knot, see if we can
+	      if (this.knots.length > 1) {
+	        var secondToLastPoint = this.knots[this.knots.length - 2];
+	        var lastPoint = this.knots[this.knots.length - 1];
+
+	        var secondToLastRopeSegement = this.bresenhem.apply(this, _toConsumableArray(secondToLastPoint).concat(_toConsumableArray(lastPoint)));
+
+	        // if (secondToLastRopeSegement.length == 1) {
+	        //   this.knots.splice(this.knots.length-1, 1);
+	        //   console.log('a');
+	        //   return true;
+	        // }
+
+	        var reversedSegment = secondToLastRopeSegement.reverse();
+
+	        if (reversedSegment.length < 3) {
+	          if (reversedSegment.every(function (p) {
+	            console.log(p);
+	            return _this2.validConnection(_this2.bresenhem.apply(_this2, _toConsumableArray(p).concat([_this2._x, _this2._y])));
+	          })) {
+	            this.knots.splice(this.knots.length - 1, 1);
+	            // Re-add a knot if needed.
+	            // this.addRequiredKnot();
+	          }
+	        } else {
+	            var _loop = function () {
+	              var checkPoint = reversedSegment[i];
+	              var checkToPrev = _this2.bresenhem.apply(_this2, _toConsumableArray(secondToLastPoint).concat(_toConsumableArray(checkPoint)));
+	              var checkToMe = _this2.bresenhem.apply(_this2, _toConsumableArray(checkPoint).concat([_this2._x, _this2._y]));
+	              var drawOne = function drawOne(p) {
+	                return _gameJsx2['default'].display.draw(p[0], p[1], '%', '#f0f', '#000');
+	              };
+	              var drawAll = function drawAll(line) {
+	                return line.forEach(drawOne);
+	              };
+
+	              if (!_this2.validConnection(checkToMe) || !_this2.validConnection(checkToPrev)) {
+	                if (i <= 1) {
+	                  return {
+	                    v: false
+	                  };
+	                } else {
+	                  _this2.knots[_this2.knots.length - 1] = reversedSegment[i - 1];
+	                  return {
+	                    v: true
+	                  };
+	                }
+	              }
+	            };
+
+	            for (var i = 0; i < reversedSegment.length; i += 1) {
+	              var _ret = _loop();
+
+	              if (typeof _ret === 'object') return _ret.v;
+	            }
+	            this.knots.splice(this.knots.length - 1, 1);
+	            return false;
+	          }
+	      }
+	      return false;
+	    }
+	  }, {
+	    key: 'updateKnots',
+	    value: function updateKnots(skipDraw) {
+	      // Do nothing if we have no knots.
+	      if (this.knots.length == 0) return;
+	      this.addRequiredKnot();
+	      var i = 0;
+	      while (this.trimLastKnot(i += 1)) {
+	        console.log('.');
+	      }
+	      if (!skipDraw) {
+	        _gameJsx2['default'].redrawMap();
 	      }
 	    }
 	  }, {
@@ -769,7 +1001,10 @@
 	      _gameJsx2['default']._drawUI();
 	      this.delegates = [];
 	      this.gainOrLoseGripStrength();
+	      this.updateKnots();
+	      window.updateKnots = this.updateKnots.bind(this);
 	      window.removeEventListener("keydown", this);
+	      _gameJsx2['default'].redrawMap();
 	      _gameJsx2['default'].engine.unlock();
 	    }
 	  }, {
@@ -969,7 +1204,8 @@
 	  releaseGrip: checkKeys(['R', 'F']),
 	  groundDirection: checkKeys(['H', 'L']),
 	  anyDirection: checkKeys(['H', 'J', 'K', 'L']),
-	  wait: checkCode([190])
+	  wait: checkCode([190]),
+	  piton: checkKeys('P')
 	};
 
 	exports['default'] = Input;
