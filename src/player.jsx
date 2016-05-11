@@ -261,9 +261,23 @@ class Player extends Entity{
     const knotsAndMe = this.knots.concat([[this._x, this._y]]);
     for (var i = 0; i < this.knots.length; i+=1) {
       const line = this.bresenhem(...knotsAndMe[i], ...knotsAndMe[i+1]);
-      line.forEach(p => {
-        Game.display.draw(p[0], p[1], '*', '#fff', '#000');
-      });
+      for (var j = 1; j < line.length-1; j+=1) {
+        const prev = line[j-1];
+        const curr = line[j];
+        const next = line[j+1];
+        var ch = '?';
+        if (prev[0] == next[0]) {
+          ch = '|';
+        } else if (prev[1] == next[1]) {
+          ch = '-';
+        } else if (!(prev[0] < next[0]) ^ !(prev[1] < next[1])) {
+          ch = '/';
+        } else {
+          ch = '\\';
+        }
+        Game.display.draw(curr[0], curr[1], ch, '#fff', '#000');
+      }
+
       Game.display.draw(line[0][0], line[0][1], '+', '#f00', '#000');
     }
   }
