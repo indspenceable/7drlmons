@@ -96,7 +96,7 @@ var Game = {
                 currentRow.push(new tileType(x, y));
             }
         }
-        this._createPlayer(20,5);
+        this._createPlayer(20,10);
         // this._createMonster(10,5,5, Mutant);
     },
 

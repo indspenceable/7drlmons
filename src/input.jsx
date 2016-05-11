@@ -35,6 +35,7 @@ var Input = {
   groundDirection: checkKeys(['H', 'L']),
   anyDirection: checkKeys(['H','J','K','L']),
   wait: checkCode([190]),
+  piton: checkKeys('P'),
 }
 
 export default Input;
