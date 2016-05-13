@@ -125,7 +125,8 @@ class Player extends Entity{
         this.doFall();
       }
     } else if (Input.wait(e)) {
-      this.finishTurn()
+      // this.finishTurn()
+      Game.chopDownTree(this._x, this._y);
     } else if (Input.piton(e)) {
       if (this.knots.length == 0) {
         this.addKnot();
@@ -260,25 +261,13 @@ class Player extends Entity{
   drawRope() {
     const knotsAndMe = this.knots.concat([[this._x, this._y]]);
     for (var i = 0; i < this.knots.length; i+=1) {
-      const line = this.bresenhem(...knotsAndMe[i], ...knotsAndMe[i+1]);
-      for (var j = 1; j < line.length-1; j+=1) {
-        const prev = line[j-1];
-        const curr = line[j];
-        const next = line[j+1];
-        var ch = '?';
-        if (prev[0] == next[0]) {
-          ch = '|';
-        } else if (prev[1] == next[1]) {
-          ch = '-';
-        } else if (!(prev[0] < next[0]) ^ !(prev[1] < next[1])) {
-          ch = '/';
-        } else {
-          ch = '\\';
-        }
-        Game.display.draw(curr[0], curr[1], ch, '#fff', '#000');
-      }
-
-      Game.display.draw(line[0][0], line[0][1], '+', '#f00', '#000');
+      let dupLine = knotsAndMe[i].filter(p=>true)
+      // if (i>0){
+      //   let previousLine = this.bresenhem(knotsAndMe[i-1], knotsAndMe[i]);
+      //   dupLine.unshift(previousLine[previousLine.length-1]);
+      // }
+      Game.drawLine(dupLine, knotsAndMe[i+1],  '#fff', '#000');
+      Game.display.draw(...knotsAndMe[i], '+', '#f00', '#000');
     }
   }
 
@@ -287,7 +276,7 @@ class Player extends Entity{
   }
 
   pointOfError(line) {
-    return line.find(p => !Game.getTile(...p).isWalkable());
+    return line.reverse().find(p => !Game.getTile(...p).isWalkable());
   }
 
   trimKnots() {
@@ -317,11 +306,9 @@ class Player extends Entity{
       const pos = [poe[0] + p[0], poe[1]+p[1]];
       return pos[0] != lastKnot[0] || pos[1] != lastKnot[1];
     }).filter(p => {
-      console.log('a');
       const pos = [poe[0] + p[0], poe[1]+p[1]];
       return Game.getTile(...pos).isWalkable();
     }).filter(p => {
-      console.log('b');
       const pos = [poe[0] + p[0], poe[1]+p[1]];
       const line = this.bresenhem(...lastKnot, ...pos);
       return this.validConnection(line);
@@ -340,8 +327,7 @@ class Player extends Entity{
       const point2 = sortedFilteredPoints[0];
       const newKnot =[poe[0] + point2[0], poe[1] + point2[1]];
       if (newKnot[0] == lastKnot[0] && newKnot[1] == lastKnot[1]) {
-        console.log("Bah!");
-        console.log(bollocks);
+        this.fail();
       } else {
         if (this.knots.length > 300) {
           this.fail();

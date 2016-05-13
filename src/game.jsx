@@ -1,4 +1,4 @@
-import {Empty, Wall, GrippableBackground} from './tile.jsx';
+import {Empty, Wall, Tree, FallenTree, GrippableBackground} from './tile.jsx';
 import Player from './player.jsx'
 
 var Game = {
@@ -55,20 +55,20 @@ var Game = {
     _generateMap: function() {
         var mapPrototype = [
             '###################################################',
-            '#                                                ##',
-            '#                       ###################       #',
-            '#                       ###################       #',
-            '#                                    ######       #',
-            '#                                        ##       #',
-            '#                                        ##      ##',
-            '#######    ####################          ##    ####',
-            '######### ###########                     # #######',
-            '#         <                                 ##    #',
-            '#          |   /                             #    #',
-            '#          < |/                              ##   #',
-            '#           <|               <  /          ####   #',
-            '#            |                <|            ####  #',
-            '#            |                 |/           ####  #',
+            '#                     |                          ##',
+            '#                     | ###################       #',
+            '#                     | ###################       #',
+            '#                     |              ######       #',
+            '#                     |            ##    ##       #',
+            '#                     |            ##    ##      ##',
+            '#######    ####################|   ##    ##    ####',
+            '######### ###########          |          # #######',
+            '#         <                    |            ##    #',
+            '#          |   /               |             #    #',
+            '#          < |/                |             ##   #',
+            '#           <|                 |       ########   #',
+            '#            |                 |   #####    ####  #',
+            '#            |                 |            ####  #',
             '#            |                 |           ####   #',
             '#          #####            #########      ####   #',
             '#   ################# #########################   #',
@@ -88,7 +88,7 @@ var Game = {
                 var tileType = {
                     ' ': Empty,
                     '#': Wall,
-                    '|': GrippableBackground.build('|', '#a53', '#333'),
+                    '|': Tree,
                     '<': GrippableBackground.build('\\', '#a53', '#333'),
                     '/': GrippableBackground.build('/', '#a53', '#333'),
 
@@ -96,7 +96,7 @@ var Game = {
                 currentRow.push(new tileType(x, y));
             }
         }
-        this._createPlayer(30,1);
+        this._createPlayer(31,10);
         // this._createMonster(10,5,5, Mutant);
     },
 
@@ -110,6 +110,90 @@ var Game = {
         var monster = new type(x,y,hp);
         this.entities.push(monster);
         this.scheduler.add(monster, true);
+    },
+
+    drawLine: function(start, end, fg, bg) {
+      const line = this.player.bresenhem(...start, ...end);
+      for (var j = 0; j < line.length-1; j+=1) {
+        const prev = j == 0 ? line[j] : line[j-1];
+        const curr = line[j];
+        const next = j == line.length-1 ? line[j] : line[j+1];
+        var ch = '?';
+        if (prev[0] == next[0]) {
+          ch = '|';
+        } else if (prev[1] == next[1]) {
+          ch = '-';
+        } else if (!(prev[0] < next[0]) ^ !(prev[1] < next[1])) {
+          ch = '/';
+        } else {
+          ch = '\\';
+        }
+        Game.display.draw(curr[0], curr[1], ch, fg, bg);
+      }
+    },
+
+    chopDownTree: function(x, y) {
+      if (this.getTile(x, y).isTree()) {
+        const DELAY = 100;
+
+        this.player.delegates.push({makeMove: ()=>{}, handleEvent: ()=>{}});
+        // Measure the tree height
+        let treeHeight = 0;
+        while(true) {
+          // Over the top!
+          if (treeHeight == y) break;
+          if (!this.getTile(x, y-treeHeight).isTree()) break;
+          this.map[y-treeHeight][x] = new Empty(x, y-treeHeight);
+          treeHeight += 1;
+        }
+        treeHeight-=0.5;
+        const getX = (a) => Math.floor(Math.cos(a/180*Math.PI) * treeHeight) + x;
+        const getY = (a) => -Math.floor(Math.sin(a/180*Math.PI) * treeHeight) + y;
+
+
+        console.log(2)
+        //Find the frames of animation
+        const animationFrames = [90];
+        let angle = 90;
+        while (angle > -20) {
+            let lastAngel = animationFrames[animationFrames.length-1];
+            console.log("Chgecking on", this.player.bresenhem(x, y, getX(angle), getY(angle)));
+            if (!this.player.validConnection(this.player.bresenhem(x, y, getX(angle), getY(angle)))) {
+            break;
+            }
+            if (getX(angle) != getX(lastAngel) || getY(angle) != getY(lastAngel)) {
+            animationFrames.push(angle);
+            }
+            console.log(angle);
+            angle -= 1;
+        }
+
+        console.log(animationFrames, animationFrames.map(f => [getX(f), getY(f)]));
+        // Display the animation!
+        animationFrames.forEach((frame, idx) => {
+          console.log(idx);
+          setTimeout(() => {
+            console.log(5);
+            if (idx > 0) {
+              let a = animationFrames[idx-1];
+              this.player.bresenhem(x, y, getX(a), getY(a)).forEach(p => {
+                this.display.draw(...p, ' ', '#000', '#222')
+              });
+            }
+            this.drawLine([x, y], [getX(frame), getY(frame)], '#f00', '#0f0');
+          }, DELAY*idx);
+        });
+
+
+        setTimeout(() => {
+            this.player.delegates = [];
+            const lastFrame = animationFrames[animationFrames.length-1];
+            this.player.bresenhem(x, y, getX(lastFrame), getY(lastFrame)).forEach((p) => {
+                this.map[p[1]][p[0]] = new FallenTree(...p);
+            })
+            this.redrawMap();
+        }, animationFrames.length * DELAY);
+      }
     },
 
     // This is for drawing terrain etc.
