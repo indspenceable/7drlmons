@@ -1,4 +1,4 @@
-import {bresenhem} from './util.jsx';
+import {bresenhem, pointOfError, validConnection} from './util.jsx';
 import Game from './game.jsx';
 
 class RopeSystem {
@@ -32,20 +32,12 @@ class RopeSystem {
     }
   }
 
-  validConnection(line) {
-    return !this.pointOfError(line);
-  }
-
-  pointOfError(line) {
-    return line.reverse().find(p => !Game.getTile(...p).isWalkable());
-  }
-
   trimKnots() {
     for (var i = 0; i < this.knots.length-2; i+=1) {
       var a = this.knots[i+0];
       // var b = this.knots[i+1];
       var c = this.knots[i+2];
-      if (this.validConnection(bresenhem(...a, ...c))) {
+      if (validConnection(bresenhem(...a, ...c))) {
         this.knots.splice(i+1, 1);
         return this.trimKnots();
       }
@@ -57,7 +49,7 @@ class RopeSystem {
     const lastKnot = this.knots[this.knots.length-1];
 
     const knotToMe = bresenhem(...lastKnot, ...currentPosition);
-    const poe = this.pointOfError(knotToMe);
+    const poe = pointOfError(knotToMe);
     if (!poe) {
       return
     }
@@ -74,13 +66,13 @@ class RopeSystem {
     }).filter(p => {
       const pos = [poe[0] + p[0], poe[1]+p[1]];
       const line = bresenhem(...lastKnot, ...pos);
-      return this.validConnection(line);
+      return validConnection(line);
     })
     // closest to the previous knot
     // Has a path to the last knot
     const point = sortedFilteredPoints.find(p => {
       const pos = [poe[0] + p[0], poe[1]+p[1]];
-      return this.validConnection(bresenhem(...pos, ...currentPosition));
+      return validConnection(bresenhem(...pos, ...currentPosition));
     });
 
     if (point){
@@ -112,12 +104,12 @@ class RopeSystem {
       const c = [this._x, this._y];
 
       var oldToMe = bresenhem(...a, ...c);
-      var poe = this.pointOfError(oldToMe)
+      var poe = pointOfError(oldToMe)
       if (!poe) {
         var mid = oldToMe[Math.floor(oldToMe.length/2)];
         var midToCurrent = bresenhem(...b, ...mid)
 
-        if (this.validConnection(midToCurrent)) {
+        if (validConnection(midToCurrent)) {
           this.knots.splice(this.knots.length-1, 1);
         }
       }
@@ -141,7 +133,7 @@ class RopeSystem {
 
       if (reversedSegment.length < 3) {
         if (reversedSegment.every(p=>{
-            return this.validConnection(bresenhem(...p, ...currentPosition));
+            return validConnection(bresenhem(...p, ...currentPosition));
           })) {
           this.knots.splice(this.knots.length-1, 1);
           // Re-add a knot if needed.
@@ -155,7 +147,7 @@ class RopeSystem {
           const drawOne = p => Game.display.draw(p[0], p[1], '%', '#f0f', '#000');
           const drawAll = line => line.forEach(drawOne);
 
-          if (!this.validConnection(checkToMe) || !this.validConnection(checkToPrev)) {
+          if (!validConnection(checkToMe) || !validConnection(checkToPrev)) {
             if (i <= 1) {
               return false;
             } else {

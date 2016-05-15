@@ -1,3 +1,5 @@
+import Game from './game.jsx';
+
 function bresenhem(x0, y0, x1, y1){
   var dx = Math.abs(x1-x0);
   var dy = Math.abs(y1-y0);
@@ -17,6 +19,16 @@ function bresenhem(x0, y0, x1, y1){
   }
 }
 
+function validConnection(line) {
+  return !pointOfError(line);
+}
+
+function pointOfError(line) {
+  return line.reverse().find(p => !Game.getTile(...p).isWalkable());
+}
+
 export  {
-  bresenhem
+  bresenhem,
+  validConnection,
+  pointOfError,
 }

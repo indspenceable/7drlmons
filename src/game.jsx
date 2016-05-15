@@ -1,6 +1,6 @@
 import {Empty, Wall, Tree, FallenTree, GrippableBackground} from './tile.jsx';
 import Player from './player.jsx'
-import {bresenhem} from './util.jsx';
+import {bresenhem, validConnection} from './util.jsx';
 
 var Game = {
     display: null,
@@ -158,7 +158,7 @@ var Game = {
         let angle = 90;
         while (angle > -20) {
             let lastAngel = animationFrames[animationFrames.length-1];
-            if (!this.player.validConnection(bresenhem(x, y, getX(angle), getY(angle)))) {
+            if (!validConnection(bresenhem(x, y, getX(angle), getY(angle)))) {
             break;
             }
             if (getX(angle) != getX(lastAngel) || getY(angle) != getY(lastAngel)) {
