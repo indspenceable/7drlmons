@@ -1,5 +1,6 @@
 import {Empty, Wall, Tree, FallenTree, GrippableBackground} from './tile.jsx';
 import Player from './player.jsx'
+import {bresenhem} from './util.jsx';
 
 var Game = {
     display: null,
@@ -113,7 +114,7 @@ var Game = {
     },
 
     drawLine: function(start, end, fg, bg) {
-      const line = this.player.bresenhem(...start, ...end);
+      const line = bresenhem(...start, ...end);
       for (var j = 0; j < line.length-1; j+=1) {
         const prev = j == 0 ? line[j] : line[j-1];
         const curr = line[j];
@@ -157,8 +158,7 @@ var Game = {
         let angle = 90;
         while (angle > -20) {
             let lastAngel = animationFrames[animationFrames.length-1];
-            console.log("Chgecking on", this.player.bresenhem(x, y, getX(angle), getY(angle)));
-            if (!this.player.validConnection(this.player.bresenhem(x, y, getX(angle), getY(angle)))) {
+            if (!this.player.validConnection(bresenhem(x, y, getX(angle), getY(angle)))) {
             break;
             }
             if (getX(angle) != getX(lastAngel) || getY(angle) != getY(lastAngel)) {
@@ -176,7 +176,7 @@ var Game = {
             console.log(5);
             if (idx > 0) {
               let a = animationFrames[idx-1];
-              this.player.bresenhem(x, y, getX(a), getY(a)).forEach(p => {
+              bresenhem(x, y, getX(a), getY(a)).forEach(p => {
                 this.display.draw(...p, ' ', '#000', '#222')
               });
             }
@@ -188,7 +188,7 @@ var Game = {
         setTimeout(() => {
             this.player.delegates = [];
             const lastFrame = animationFrames[animationFrames.length-1];
-            this.player.bresenhem(x, y, getX(lastFrame), getY(lastFrame)).forEach((p) => {
+            bresenhem(x, y, getX(lastFrame), getY(lastFrame)).forEach((p) => {
                 this.map[p[1]][p[0]] = new FallenTree(...p);
             })
             this.redrawMap();
