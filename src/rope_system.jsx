@@ -32,11 +32,12 @@ class RopeSystem {
     }
   }
 
-  trimKnots() {
-    for (var i = 0; i < this.knots.length-2; i+=1) {
-      var a = this.knots[i+0];
-      // var b = this.knots[i+1];
-      var c = this.knots[i+2];
+  trimKnots(currentPosition) {
+    const knotsAndMe = this.knots.concat([currentPosition]);
+    for (var i = 0; i < knotsAndMe.length-2; i+=1) {
+      var a = knotsAndMe[i+0];
+      // var b = knotsAndMe[i+1];
+      var c = knotsAndMe[i+2];
       if (validConnection(bresenhem(...a, ...c))) {
         this.knots.splice(i+1, 1);
         i = 0;
@@ -77,7 +78,7 @@ class RopeSystem {
 
     if (point){
       this.knots.push([poe[0] + point[0], poe[1] + point[1]]);
-      this.trimKnots();
+      this.trimKnots(currentPosition);
     } else if (sortedFilteredPoints.length > 0) {
       const point2 = sortedFilteredPoints[0];
       const newKnot =[poe[0] + point2[0], poe[1] + point2[1]];
@@ -195,7 +196,7 @@ class RopeSystem {
     }
     if (this.shouldRevertToBackupKnots(currentPosition)) {
       this.knots = [...backupKnots, this.previousLocation];
-      this.trimKnots();
+      this.trimKnots(currentPosition);
     }
 
     this.previousLocation = [...currentPosition];
