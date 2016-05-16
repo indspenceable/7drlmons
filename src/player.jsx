@@ -47,7 +47,6 @@ class Player extends Entity{
   doFall() {
     this.delegates.push(EMPTY_DELEGATE);
     this.moveInstantlyToAndTrigger(this._x,this._y+1);
-    Game.redrawMap();
     var timeOut = 0;
     if (this.shouldFall()) {
       timeOut = 20;

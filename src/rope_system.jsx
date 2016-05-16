@@ -39,7 +39,7 @@ class RopeSystem {
       var c = this.knots[i+2];
       if (validConnection(bresenhem(...a, ...c))) {
         this.knots.splice(i+1, 1);
-        return this.trimKnots();
+        i = 0;
       }
     }
   }
@@ -163,14 +163,41 @@ class RopeSystem {
     return false;
   }
 
+  shouldRevertToBackupKnots(currentPosition) {
+    const knotsAndMe = this.knots.concat([currentPosition]);
+    for (var i = 0; i < this.knots.length; i+=1) {
+      const c = knotsAndMe[i];
+      const n = knotsAndMe[i+1];
+      if (!validConnection(bresenhem(...c, ...n))) {
+        return true
+      }
+    }
+    return false;
+  }
+
+  // In order to update knots...
+  // 1) If there's an issue between the last knot and our current postion,
+  //    add a new knot.
+  // 2) At that point, if we can trim knots from the end of the list and still
+  //    be OK, do it.
+
+  // 3) Find any sets of 3 knots where we don't need the middle knot, and get
+  //    rid of the middle knot.
+
   updateKnots(currentPosition) {
     // Do nothing if we have no knots.
     if (this.knots.length == 0) return;
+
+    const backupKnots = this.knots.filter(p=>true);
     this.addRequiredKnot(currentPosition);
     var i = 0;
     while(this.trimLastKnot(currentPosition, i += 1)) {
     }
-    this.trimKnots();
+    if (this.shouldRevertToBackupKnots(currentPosition)) {
+      this.knots = [...backupKnots, this.previousLocation];
+      this.trimKnots();
+    }
+
     this.previousLocation = [...currentPosition];
   }
 }
