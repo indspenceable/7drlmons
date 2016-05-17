@@ -33,8 +33,9 @@ var Game = {
     attachRopes: function(ropeSystem) {
         ropeSystem.eachRope(null, line => this.eachGlyphInLine(line,
             (x,y,ch) => this.getTile(x,y).ropeGlyph = ch));
-        this.getTile(...ropeSystem.knots[0]).ropeGlyph = 'o';
-        this.getTile(...ropeSystem.knots[ropeSystem.knots.length-1]).ropeGlyph = 'o';
+        ropeSystem.eachPiton(pos => this.getTile(...pos).ropeGlyph = 'o');
+        // this.getTile(...ropeSystem.getFirstPiton()).ropeGlyph = 'o';
+        // this.getTile(...ropeSystem.getLastPiton()).ropeGlyph = 'o';
     },
 
     findPathTo: function(start, end) {
