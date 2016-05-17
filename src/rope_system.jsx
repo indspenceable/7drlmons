@@ -196,8 +196,8 @@ class RopeSystem {
     }
     if (this.shouldRevertToBackupKnots(currentPosition)) {
       this.knots = [...backupKnots, this.previousLocation];
-      this.trimKnots(currentPosition);
     }
+    this.trimKnots(currentPosition);
 
     this.previousLocation = [...currentPosition];
   }
