@@ -1,5 +1,6 @@
 import Game from './game.jsx';
 var browns = ['#DEB887', '#CD853F', '#A0522D', '#D2B48C'];
+var grays  = ['#333333', '#2c2c2c', '#363636', '#2f2f2f']
 
 class Tile {
   constructor(c1,fg1,bg1) {
@@ -58,10 +59,18 @@ class Wall extends Tile {
   isGrippable() { return true; }
 }
 
+class Empty extends Tile {
+  constructor(x, y) {
+    super(' ', '#000', grays.random());
+    this.x = x;
+    this.y = y;
+  }
+}
+
 module.exports = {
   GrippableBackground,
   Wall,
   Tree,
-  Empty: Tile.build(' ', '#fff', '#333'),
+  Empty,
   FallenTree,
 }
