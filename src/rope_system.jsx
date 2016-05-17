@@ -40,7 +40,7 @@ class RopeSystem {
       var c = knotsAndMe[i+2];
       if (validConnection(bresenhem(...a, ...c))) {
         this.knots.splice(i+1, 1);
-        i = 0;
+        return this.trimKnots(currentPosition);
       }
     }
   }
