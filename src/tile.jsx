@@ -7,6 +7,7 @@ class Tile {
     this.c1 = c1;
     this.fg1 = fg1;
     this.bg1 = bg1;
+    this.ropeGlyph = undefined;
   }
 
   static build(c1,fg1,bg1) {
@@ -22,11 +23,23 @@ class Tile {
   trigger(){}
   canSeeThrough(){ return true; }
   isWalkable(){ return true; }
-  isGrippable(){ return false; }
+  isGrippable(){ return !!this.ropeGlyph; }
   isTree() { return false; }
 
-  draw(){ Game.display.draw(this.x, this.y, this.c1, this.fg1, this.bg1); }
-  drawFromMemory(){ Game.display.draw(this.x, this.y, this.c1, "#ccc", "#222"); }
+  draw(){
+    if (this.ropeGlyph) {
+      Game.display.draw(this.x, this.y, this.ropeGlyph, '#b94', this.bg1);
+    } else {
+      Game.display.draw(this.x, this.y, this.c1, this.fg1, this.bg1);
+    }
+  }
+  drawFromMemory(){
+     if (this.ropeGlyph) {
+      Game.display.draw(this.x, this.y, this.ropeGlyph, '#b94', "#222");
+    } else {
+      Game.display.draw(this.x, this.y, this.c1, "#ccc", "#222");
+    }
+  }
 }
 
 class GrippableBackground extends Tile {

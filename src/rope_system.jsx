@@ -14,21 +14,27 @@ class RopeSystem {
     this.knots = [currentPosition];
   }
 
-  tieOut() {
+  tieOut(currentPosition) {
+    const rs = new RopeSystem();
+    this.knots.push(currentPosition);
+    rs.knots = this.knots
     this.knots = [];
+    Game.attachRopes(rs);
   }
 
   // rope related stuff
-  draw(currentPosition) {
-    const knotsAndMe = this.knots.concat([currentPosition]);
-    for (var i = 0; i < this.knots.length; i+=1) {
-      let dupLine = knotsAndMe[i].filter(p=>true)
+  eachRope(currentPosition, cb) {
+    const knotsAndMe = this.knots.concat([currentPosition]).filter(el=>el);
+    for (var i = 0; i < knotsAndMe.length-1; i+=1) {
+      // let dupLine = knotsAndMe[i].filter(p=>true)
       // if (i>0){
       //   let previousLine = bresenhem(knotsAndMe[i-1], knotsAndMe[i]);
       //   dupLine.unshift(previousLine[previousLine.length-1]);
       // }
-      Game.drawLine(dupLine, knotsAndMe[i+1],  '#fff', '#000');
-      Game.display.draw(...knotsAndMe[i], '+', '#f00', '#000');
+
+      cb(bresenhem(...knotsAndMe[i], ...knotsAndMe[i+1]))
+      // Game.drawLine(dupLine, knotsAndMe[i+1],  '#fff', '#000');
+      // Game.display.draw(...knotsAndMe[i], '+', '#f00', '#000');
     }
   }
 

@@ -129,7 +129,7 @@ class Player extends Entity{
       Game.chopDownTree(this._x, this._y);
     } else if (Input.piton(e)) {
       if (this.ropeSystem.tiedIn()) {
-        this.ropeSystem.tieOut();
+        this.ropeSystem.tieOut([this._x, this._y]);
       } else {
         this.ropeSystem.tieIn([this._x, this._y]);
       }
@@ -217,7 +217,10 @@ class Player extends Entity{
     if (this.grip) {
       Game.display.draw(this.grip[0], this.grip[1], '+', '#f0f', '#000');
     }
-    this.ropeSystem.draw([this._x, this._y]);
+    if (this.ropeSystem.tiedIn()) {
+      this.ropeSystem.eachRope([this._x, this._y], line => Game.drawAsLine(line, '#742', '#321'));
+      Game.display.draw(...this.ropeSystem.knots[0], 'o',  '#742', '#321');
+    }
     super.draw();
     if (this._currentDelegate() !== undefined) {
       this._currentDelegate().draw(this);

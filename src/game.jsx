@@ -30,6 +30,13 @@ var Game = {
         this.engine.start();
     },
 
+    attachRopes: function(ropeSystem) {
+        ropeSystem.eachRope(null, line => this.eachGlyphInLine(line,
+            (x,y,ch) => this.getTile(x,y).ropeGlyph = ch));
+        this.getTile(...ropeSystem.knots[0]).ropeGlyph = 'o';
+        this.getTile(...ropeSystem.knots[ropeSystem.knots.length-1]).ropeGlyph = 'o';
+    },
+
     findPathTo: function(start, end) {
         var path = [];
         var passableCallback = function(x,y) {
@@ -113,8 +120,14 @@ var Game = {
         this.scheduler.add(monster, true);
     },
 
-    drawLine: function(start, end, fg, bg) {
-      const line = bresenhem(...start, ...end);
+    drawAsLine: function(line, fg, bg) {
+        this.eachGlyphInLine(line, (x, y, ch) =>
+            Game.display.draw(x, y, ch, fg, bg));
+    },
+
+    //call a callback for each element of line with x, y, and glyph
+    eachGlyphInLine: function(line, cb) {
+      // const line = bresenhem(...start, ...end);
       for (var j = 0; j < line.length-1; j+=1) {
         const prev = j == 0 ? line[j] : line[j-1];
         const curr = line[j];
@@ -129,7 +142,7 @@ var Game = {
         } else {
           ch = '\\';
         }
-        Game.display.draw(curr[0], curr[1], ch, fg, bg);
+        cb(...curr, ch);
       }
     },
 
@@ -180,7 +193,7 @@ var Game = {
                 this.display.draw(...p, ' ', '#000', '#222')
               });
             }
-            this.drawLine([x, y], [getX(frame), getY(frame)], '#f00', '#0f0');
+            this.drawAsLine(bresenhem(x, y, getX(frame), getY(frame)), '#f00', '#0f0');
           }, DELAY*idx);
         });
 
