@@ -1,10 +1,10 @@
 import {Empty, Wall, Tree, FallenTree, GrippableBackground} from './tile.jsx';
 import Player from './player.jsx'
 import {bresenhem, validConnection} from './util.jsx';
+import HunterSeeker from './hunter_seeker.jsx';
 
 class Game {
   constructor() {
-    console.log("initializing game.");
     // set up variables
     this.display = null
     this.map = {}
@@ -36,17 +36,13 @@ class Game {
   }
 
   // TODO this should be done in the entity itself.
-  findPathTo(start, end) {
+  findPathTo(sx, sy, ex, ey, entitiesToIgnore=[]) {
     var path = [];
     var passableCallback = (x,y) => {
-      var monsterAtSpace = this.monsterAt(x,y)
-      return ((monsterAtSpace === undefined) ||
-        (monsterAtSpace === start) ||
-        (monsterAtSpace === end)) &&
-      this.getTile(x,y).isWalkable();
+      return this.getTile(x,y).isWalkable();
     }
-    var astar = new ROT.Path.AStar(start.getX(), start.getY(), passableCallback, {topology: 4});
-    astar.compute(end.getX(), end.getY(), function(x,y) {
+    var astar = new ROT.Path.AStar(ex, ey, passableCallback, {topology: 4});
+    astar.compute(sx, sy, function(x,y) {
       path.push([x,y]);
     });
     return path;
@@ -54,9 +50,8 @@ class Game {
 
   getTile(x, y) {
     if (y < 0 || y >= this.map.length || x < 0 || x >= this.map[0].length) {
-      // console.log(this.map.length, this.map[0].length);
       // throw "Attempting to access out-of-bounds tile: " + x + ", " + y;
-      return undefined;
+      return new Wall();
     }
     return this.map[y][x];
   }
@@ -64,14 +59,24 @@ class Game {
   _generateMap() {
     var mapPrototype = [
     '###################################################',
-    '#.................................................#',
-    '#.................................................#',
-    '#.................................................#',
-    '#.................................................#',
-    '#.................................................#',
-    '#.................................................#',
-    '#.................................................#',
-    '#.................................................#',
+    '#....................#............................#',
+    '#....................#............................#',
+    '#....................#............................#',
+    '#....................#............................#',
+    '#....................#............................#',
+    '#....................#............................#',
+    '#....................#............................#',
+    '#....................#............................#',
+    '#....................#............................#',
+    '#......................#..........................#',
+    '#......................#..........................#',
+    '#......................#..........................#',
+    '#......................#..........................#',
+    '#......................#..........................#',
+    '#......................#..........................#',
+    '#......................#..........................#',
+    '#......................#..........................#',
+    '#......................#..........................#',
     '###################################################',
     ]
     this.map = [];
@@ -87,19 +92,15 @@ class Game {
         currentRow.push(new tileType(x, y));
       }
     }
-    this._createPlayer(5,5);
+    this.player = new Player(5,5);
+    this._registerEntity(this.player)
+    this._registerEntity(new HunterSeeker(20, 5));
+    this._registerEntity(new HunterSeeker(40, 5));
   }
 
-  _createPlayer(x, y) {
-    this.player = new Player(x, y);
-    this.entities.push(this.player);
-    this.scheduler.add(this.player, true);
-  }
-
-  _createMonster(x,y,hp,type) {
-    var monster = new type(x,y,hp);
-    this.entities.push(monster);
-    this.scheduler.add(monster, true);
+  _registerEntity(entity) {
+    this.entities.push(entity);
+    this.scheduler.add(entity, true);
   }
 
    // This is for drawing terrain etc.
@@ -124,7 +125,7 @@ class Game {
     this.display.draw(x, y, ch||' ', fg, bg);
   }
 
-  deregisterMonster(monster) {
+  deregisterEntity(monster) {
     this.scheduler.remove(monster);
     var index = this.entities.indexOf(monster);
     if (index >= 0) {
@@ -153,7 +154,8 @@ class Game {
   redrawMap() {
     this._calculateFOV();
     this._drawWholeMap();
-    this.player.draw();
+    this.entities.forEach(e => e.draw());
+    // this.player.draw();
   }
 
   _canSee(x,y) {

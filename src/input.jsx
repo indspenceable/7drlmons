@@ -2,7 +2,6 @@ var checkKeys = (chs) => {
   return e => Array.from(chs).includes(String.fromCharCode(e.which))
 }
 var checkCode = (codes) => {
-  console.log(Array.from(codes))
   return e => Array.from(codes).includes(e.keyCode)
 }
 

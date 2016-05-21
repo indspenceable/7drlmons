@@ -51,7 +51,7 @@ class Entity {
 class Monster extends Entity {
   die() {
     Game.logMessage(this.getName() + " dies");
-    Game.deregisterMonster(this);
+    Game.deregisterEntity(this);
   }
 }
 
