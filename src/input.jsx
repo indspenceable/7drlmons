@@ -29,13 +29,8 @@ var getDirection8 = (e) => {
 
 
 var Input = {
-  getDirection4, getDirection8,
-  setGrip: checkKeys('G'),
-  releaseGrip: checkKeys(['R', 'F']),
-  groundDirection: checkKeys(['H', 'L']),
-  anyDirection: checkKeys(['H','J','K','L']),
+  getDirection8,
   wait: checkCode([190]),
-  piton: checkKeys('P'),
 }
 
 export default Input;
