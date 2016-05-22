@@ -1,4 +1,5 @@
 import Game from './game.jsx';
+import Point from './point.jsx';
 var browns = ['#DEB887', '#CD853F', '#A0522D', '#D2B48C'];
 var gray   = () => ROT.Color.toHex(ROT.Color.interpolate([0, 0, 0], [255, 255, 255], (Math.random()*0.5) + 0.25))
 
@@ -22,8 +23,7 @@ class Tile {
 class Wall extends Tile {
   constructor(x, y) {
     super('#', gray(), '#000');
-    this.x = x;
-    this.y = y;
+    this.position= Point.at([x,y]);
   }
   isWalkable() { return false; }
   canSeeThrough() { return false; }
@@ -34,8 +34,7 @@ class Empty extends Tile {
     super('.',
       gray(),
       '#000');
-    this.x = x;
-    this.y = y;
+    this.position= Point.at([x,y]);
   }
 }
 
@@ -44,8 +43,7 @@ class Smoke extends Tile {
     super('%',
       gray(),
       '#000');
-    this.x = x;
-    this.y = y;
+    this.position= Point.at([x,y]);
   }
   glyph(){
     return [this.c1, gray(), this.bg];

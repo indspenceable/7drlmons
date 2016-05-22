@@ -1,18 +1,18 @@
 import Entity from './entity.jsx'
 import Game from './game.jsx'
+import Point from './point.jsx'
 
 class HunterSeeker extends Entity {
   constructor(x, y) {
     super("S", "Hunter Seeker", '#f00', '#000');
-    this._x = x;
-    this._y = y;
+    this.position = Point.at([x, y]);
 
     this.state = 'roam';
 
     this.patrols = [];
     for (var i = 0; i < 20; i+=1 ) {
-      let targ =[Math.floor(Math.random()*30)+1, Math.floor(Math.random()*20)+1];
-      if (Game.getTile(...targ).isWalkable()) {
+      let targ = Point.at([Math.floor(Math.random()*30)+1, Math.floor(Math.random()*20)+1]);
+      if (Game.getTile(targ).isWalkable()) {
         this.patrols.push(targ);
       }
     }
@@ -21,6 +21,7 @@ class HunterSeeker extends Entity {
   }
 
   see(p) {
+    super.see(p);
     if (this.lastSeen[p] !== undefined) {
       this.lastSeen[p] = 0;
     }
@@ -37,14 +38,16 @@ class HunterSeeker extends Entity {
     if (path.length < 2) {
       return;
     }
-    this.moveInstantlyToAndTrigger(...path[1]);
+    this.moveInstantlyToAndTrigger(path[1]);
   }
 
   selectTarget() {
+    // map points to [point, score] pairs;
     return this.patrols.map(p => [
       p,
-      Math.abs(p[0] - this._x) + Math.abs(p[1] - this._y) - this.lastSeen[p]
+      Math.abs(p._x - this.position._x) + Math.abs(p._y - this.position._y) - this.lastSeen[p]
     ]).sort((p1, p2) => {
+      // sort by score
       if (p1[1] < p2[1]) {
         return -1;
       } else if (p1[1] > p2[1]) {
@@ -52,6 +55,7 @@ class HunterSeeker extends Entity {
       } else {
         return 0;
       }
+      // Return the point of the top rated.
     })[0][0];
   }
 
@@ -63,7 +67,7 @@ class HunterSeeker extends Entity {
   moveAlongPatrol() {
     this.calculateFOV();
     const target = this.selectTarget();
-    const path = Game.findPathTo(this.getX(), this.getY(), ...target, [this, Game.player]);
+    const path = Game.findPathTo(this.position, target, [this, Game.player]);
     this.stepOnPath(path);
     this.incrementSeenTimes();
     this.calculateFOV();
@@ -71,9 +75,9 @@ class HunterSeeker extends Entity {
 
   canSeePlayer() {
     for (var i in this.visibleTiles) {
-      var p = this.visibleTiles[i];
-      if (Game.player._x == p[0] && Game.player._y == p[1]) {
-        this.lastSighting = p;
+      // i is a string rep of location
+      if (Game.player.position.coords.toString() == i) {
+        this.lastSighting = Game.player.position;
         return true;
       }
     }
@@ -83,7 +87,7 @@ class HunterSeeker extends Entity {
   hunt() {
     this.calculateFOV();
     if ( this.canSeePlayer() ) {
-      const path = Game.findPathTo(this.getX(), this.getY(), Game.player.getX(), Game.player.getY());
+      const path = Game.findPathTo(this.position, Game.player.position);
       if (path.length >= 3) {
         this.stepOnPath(path);
       } else {

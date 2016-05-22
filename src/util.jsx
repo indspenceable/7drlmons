@@ -10,7 +10,7 @@ function bresenhem(x0, y0, x1, y1){
 
   var line = []
   for (var i = 0; i < 1000; i+=1){
-     line.push([x0,y0]);  // Do what you need to for this
+     line.push(Point.at([x0,y0]));  // Do what you need to for this
 
      if ((x0==x1) && (y0==y1)) return line;
      var e2 = 2*err;
@@ -24,7 +24,7 @@ function validConnection(line) {
 }
 
 function pointOfError(line) {
-  return line.reverse().find(p => !Game.getTile(...p).isWalkable());
+  return line.reverse().find(p => !Game.getTile(p).isWalkable());
 }
 
 export  {

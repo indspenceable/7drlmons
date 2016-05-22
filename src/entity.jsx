@@ -1,4 +1,5 @@
 import Game from './game.jsx'
+import Point from './point.jsx'
 
 class Entity {
   constructor(c, name, fg, bg) {
@@ -6,31 +7,25 @@ class Entity {
     this._name = name;
     this.fg = fg;
     this.bg = bg;
-  }
 
-  getX() {
-    return this._x;
-  }
-  getY() {
-    return this._y;
+    this.visibleTiles = {}
   }
 
   getName() {
     return this._name;
   }
 
-  moveInstantlyToAndTrigger(x,y) {
-    this._x = x;
-    this._y = y;
-    Game.getTile(this._x, this._y).trigger(this);
+  moveInstantlyToAndTrigger(point) {
+    this.position = point;
+    Game.getTile(point).trigger(this);
   }
 
-  isAt(x,y) {
-    return x == this._x && y == this._y;
+  isAt(point) {
+    return point.eq(this.position);
   }
 
   draw() {
-    Game.displayAndSetMemory(this._x, this._y, this.c, this.fg, this.bg);
+    Game.displayAndSetMemory(this.position, this.c, this.fg, this.bg);
   }
 
   act() {
@@ -42,9 +37,43 @@ class Entity {
   }
 
   logVisible(message) {
-    if (Game._canSee(this._x, this._y)) {
+    if (Game._canSee(this.position)) {
       Game.logMessage(message);
     }
+  }
+
+
+  calculateFOV() {
+    const visionRadius = 6;
+
+    const withinRangeCallback = (x,y) => {
+      // TODO make this a method on Point
+      const dx = (this.position._x - x);
+      const dy = (this.position._y - y);
+      return (dx*dx) + (dy*dy) < (visionRadius*visionRadius);
+    }
+    const canSeeThroughCallback = (x,y) => {
+      return Game.getTile(Point.at([x,y])).canSeeThrough() || this.position.eq(Point.at([x,y]));
+    }
+
+    const fovCalculator = new ROT.FOV.PreciseShadowcasting(canSeeThroughCallback);
+    this.visibleTiles = {};
+    this.startFOV();
+    fovCalculator.compute(...this.position.coords, visionRadius, (x, y, r, canSee) => {
+      if (withinRangeCallback(x,y)) {
+        this.see(Point.at([x,y]));
+      }
+    });
+  }
+
+  startFOV() {}
+  see(p) {
+    this.visibleTiles[p] = true;
+  }
+
+  // This relies on calling calculateFOV()
+  canSee(point) {
+    return this.visibleTiles[point];
   }
 }
 

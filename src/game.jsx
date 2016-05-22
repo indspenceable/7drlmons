@@ -2,6 +2,7 @@ import {Empty, Wall, Smoke} from './tile.jsx';
 import Player from './player.jsx'
 import {bresenhem, validConnection} from './util.jsx';
 import HunterSeeker from './hunter_seeker.jsx';
+import Point from './point.jsx'
 
 class Game {
   constructor() {
@@ -13,7 +14,6 @@ class Game {
     this.entities = []
     this.scheduler = null
     this.messages = []
-    this.visibleTiles = []
     this._memory = {}
   }
 
@@ -36,19 +36,22 @@ class Game {
   }
 
   // TODO this should be done in the entity itself.
-  findPathTo(sx, sy, ex, ey, entitiesToIgnore=[]) {
+  findPathTo(startPoint, endPoint, entitiesToIgnore=[]) {
     var path = [];
     var passableCallback = (x,y) => {
-      return this.getTile(x,y).isWalkable();
+      return this.getTile(Point.at([x,y])).isWalkable();
     }
-    var astar = new ROT.Path.AStar(ex, ey, passableCallback, {topology: 8});
-    astar.compute(sx, sy, function(x,y) {
-      path.push([x,y]);
+    var astar = new ROT.Path.AStar(...endPoint.coords, passableCallback, {topology: 8});
+    astar.compute(...startPoint.coords, function(x,y) {
+      path.push(Point.at([x,y]));
     });
     return path;
   }
 
-  getTile(x, y) {
+  getTile(point) {
+    var x = point._x;
+    var y = point._y;
+
     if (y < 0 || y >= this.map.length || x < 0 || x >= this.map[0].length) {
       // throw "Attempting to access out-of-bounds tile: " + x + ", " + y;
       return new Wall();
@@ -105,25 +108,21 @@ class Game {
   }
 
    // This is for drawing terrain etc.
-  drawMapTileAt(x,y) {
-    if (!this._canSee(x,y)) {
-      if (this._memory[[x,y]]) {
-        this.display.draw(x, y, ...this._memory[[x,y]]);
+  drawMapTileAt(point) {
+    if (!this.player.canSee(point)) {
+      if (this.getMemory(point)) {
+        this.display.draw(...point.coords, ...this.getMemory(point));
       } else {
-        this.display.draw(x,y," ");
+        this.display.draw(...point.coords, " ");
       }
       return;
     }
-    this.displayAndSetMemory(x, y, ...this.getTile(x,y).glyph());
+    this.displayAndSetMemory(point, ...this.getTile(point).glyph());
   }
 
-  displayAndSetMemory(x, y, ch, fg, bg) {
-    if (ch != ' ') {
-      this._memory[[x,y]] = [ch, '#555', '#222'];
-    } else {
-      this._memory[[x,y]] = [ch, '#222', '#555'];
-    }
-    this.display.draw(x, y, ch||' ', fg, bg);
+  displayAndSetMemory(point, ch, fg, bg) {
+    this.setMemory(point, ch, fg, bg)
+    this.display.draw(...point.coords, ch||' ', fg, bg);
   }
 
   deregisterEntity(monster) {
@@ -132,22 +131,17 @@ class Game {
     if (index >= 0) {
       this.entities.splice(index, 1);
     }
-    this.drawMapTileAt(monster.getX(), monster.getY());
+    this.drawMapTileAt(monster.position);
   }
 
-  monsterAt(x,y) {
-    for(var i = 0; i < this.entities.length; i+= 1) {
-      if (this.entities[i].isAt(x,y)) {
-        return this.entities[i];
-      }
-    }
-    return undefined;
+  monsterAt(point) {
+    return this.entities.find(e => e.isAt(point));
   }
 
   _drawWholeMap() {
     for (var y = 0; y < this.map.length; y++) {
       for (var x = 0; x < this.map[0].length; x++) {
-        this.drawMapTileAt(x,y);
+        this.drawMapTileAt(Point.at([x,y]));
       }
     }
   }
@@ -246,6 +240,20 @@ class Game {
   logMessage(message) {
     this.messages.push(message);
     this._clearAndDrawMessageLog();
+  }
+
+
+  // MEMORY
+  getMemory(point) {
+    return this._memory[point];
+  }
+
+  setMemory(point, ch, fg, bg) {
+    if (ch != ' ') {
+      this._memory[point] = [ch, '#555', '#222'];
+    } else {
+      this._memory[point] = [ch, '#222', '#555'];
+    }
   }
 };
 

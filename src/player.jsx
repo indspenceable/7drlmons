@@ -1,6 +1,7 @@
 import Entity from './entity.jsx';
 import Game from './game.jsx';
 import Input from './input.jsx';
+import Point from './point.jsx'
 
 var EMPTY_DELEGATE = {
   handleEvent: function() {},
@@ -10,8 +11,7 @@ var EMPTY_DELEGATE = {
 class Player extends Entity{
   constructor(x, y) {
     super('@', 'player', '#fff', '#000');
-    this._x = x;
-    this._y = y;
+    this.position = Point.at([x, y]);
     this.delay = 0;
     this.delegates = [];
   }
@@ -56,14 +56,13 @@ class Player extends Entity{
   }
 
   _attemptMovmement(dirIndex) {
-    var dir = ROT.DIRS[8][dirIndex];
+    const dir = Point.at(ROT.DIRS[8][dirIndex]);
     /* is there a free space? */
-    var newX = this._x + dir[0];
-    var newY = this._y + dir[1];
-    var monster = Game.monsterAt(newX, newY);
+    const dest = this.position.plus(dir);
+    var monster = Game.monsterAt(dest);
 
-    if (Game.getTile(newX, newY).isWalkable()) {
-      this.moveInstantlyToAndTrigger(newX,newY);
+    if (Game.getTile(dest).isWalkable()) {
+      this.moveInstantlyToAndTrigger(dest);
       Game.redrawMap();
       this.finishTurn();
     }
