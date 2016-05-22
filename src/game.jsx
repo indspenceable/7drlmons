@@ -153,43 +153,10 @@ class Game {
   }
 
   redrawMap() {
-    this._calculateFOV();
+    this.player.calculateFOV();
     this._drawWholeMap();
     this.entities.forEach(e => e.draw());
     // this.player.draw();
-  }
-
-  _canSee(x,y) {
-    return this.visibleTiles[[x,y]] === true;
-  }
-
-  _hasSeen(x,y) {
-    return this._memory[[x,y]] === true;
-  }
-
-  // TODO this should work for players and monsters.
-  _calculateFOV() {
-    var varRadius = 5;
-    var player = this.player;
-
-    var withinRange = (x,y) => {
-      var dx = (player.getX() - x);
-      var dy = (player.getY() - y);
-      return (dx*dx) + (dy*dy) < (varRadius*varRadius);
-    }
-    var lightPasses = (x,y) => {
-      var tile = this.getTile(x,y);
-      return tile.canSeeThrough() || (this.player._x == x && this.player._y == y)
-    }
-
-    var fov = new ROT.FOV.PreciseShadowcasting(lightPasses);
-    this.visibleTiles = [];
-    fov.compute(this.player.getX(), this.player.getY(), varRadius, (x,y,r,canSee) => {
-      if (withinRange(x,y)) {
-        this.visibleTiles[[x,y]] = true;
-        this._memory[[x,y]] = true;
-      }
-    });
   }
 
   // UI - move this to it's own shit later?

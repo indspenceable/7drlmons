@@ -20,30 +20,10 @@ class HunterSeeker extends Entity {
     this.patrols.forEach(p => this.lastSeen[p] = Math.floor(Math.random()*50));
   }
 
-  // TODO this should work for players and monsters.
-  _calculateFOV() {
-    var varRadius = 6;
-
-    var withinRange = (x,y) => {
-      var dx = (this._x - x);
-      var dy = (this._y - y);
-      return (dx*dx) + (dy*dy) < (varRadius*varRadius);
+  see(p) {
+    if (this.lastSeen[p] !== undefined) {
+      this.lastSeen[p] = 0;
     }
-    var lightPasses = (x,y) => {
-      var tile = Game.getTile(x,y);
-      return tile.canSeeThrough() || (this._x == x && this._y == y);
-    }
-
-    var fov = new ROT.FOV.PreciseShadowcasting(lightPasses);
-    this.visibleTiles = [];
-    fov.compute(this._x, this._y, varRadius, (x,y,r,canSee) => {
-      if (withinRange(x,y)) {
-        this.visibleTiles.push([x,y]);
-        if (this.lastSeen[[x,y]] !== undefined) {
-          this.lastSeen[[x,y]] = 0;
-        }
-      }
-    });
   }
 
   incrementSeenTimes() {
@@ -81,12 +61,12 @@ class HunterSeeker extends Entity {
   }
 
   moveAlongPatrol() {
-    this._calculateFOV();
+    this.calculateFOV();
     const target = this.selectTarget();
     const path = Game.findPathTo(this.getX(), this.getY(), ...target, [this, Game.player]);
     this.stepOnPath(path);
     this.incrementSeenTimes();
-    this._calculateFOV();
+    this.calculateFOV();
   }
 
   canSeePlayer() {
@@ -101,7 +81,7 @@ class HunterSeeker extends Entity {
   }
 
   hunt() {
-    this._calculateFOV();
+    this.calculateFOV();
     if ( this.canSeePlayer() ) {
       const path = Game.findPathTo(this.getX(), this.getY(), Game.player.getX(), Game.player.getY());
       if (path.length >= 3) {
@@ -125,7 +105,7 @@ class HunterSeeker extends Entity {
   }
 
   draw() {
-    // if (Game._canSee(this._x, this._y)) {
+    // if (Game.player.canSee(this._x, this._y)) {
       super.draw();
       if (this.state == 'roam') {
         Game.display.draw(...this.selectTarget(), 'X', '#0f0', '#000');
