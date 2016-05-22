@@ -39,7 +39,22 @@ class Empty extends Tile {
   }
 }
 
+class Smoke extends Tile {
+  constructor(x, y) {
+    super('%',
+      gray(),
+      '#000');
+    this.x = x;
+    this.y = y;
+  }
+  glyph(){
+    return [this.c1, gray(), this.bg];
+  }
+  canSeeThrough() { return false }
+}
+
 module.exports = {
   Wall,
   Empty,
+  Smoke,
 }

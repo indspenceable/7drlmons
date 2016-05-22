@@ -3,7 +3,7 @@ import Game from './game.jsx'
 
 class HunterSeeker extends Entity {
   constructor(x, y) {
-    super("H", "Hunter Seeker", '#f00', '#000');
+    super("S", "Hunter Seeker", '#f00', '#000');
     this._x = x;
     this._y = y;
 
@@ -31,7 +31,7 @@ class HunterSeeker extends Entity {
     }
     var lightPasses = (x,y) => {
       var tile = Game.getTile(x,y);
-      return tile.canSeeThrough();
+      return tile.canSeeThrough() || (this._x == x && this._y == y);
     }
 
     var fov = new ROT.FOV.PreciseShadowcasting(lightPasses);

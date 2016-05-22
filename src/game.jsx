@@ -1,4 +1,4 @@
-import {Empty, Wall, Tree, FallenTree, GrippableBackground} from './tile.jsx';
+import {Empty, Wall, Smoke} from './tile.jsx';
 import Player from './player.jsx'
 import {bresenhem, validConnection} from './util.jsx';
 import HunterSeeker from './hunter_seeker.jsx';
@@ -41,7 +41,7 @@ class Game {
     var passableCallback = (x,y) => {
       return this.getTile(x,y).isWalkable();
     }
-    var astar = new ROT.Path.AStar(ex, ey, passableCallback, {topology: 4});
+    var astar = new ROT.Path.AStar(ex, ey, passableCallback, {topology: 8});
     astar.compute(sx, sy, function(x,y) {
       path.push([x,y]);
     });
@@ -65,14 +65,14 @@ class Game {
     '#....................#............................#',
     '#....................#............................#',
     '#....................#............................#',
-    '#....................#............................#',
-    '#....................#............................#',
-    '#....................#............................#',
-    '#......................#..........................#',
-    '#......................#..........................#',
-    '#......................#..........................#',
-    '#......................#..........................#',
-    '#......................#..........................#',
+    '#........%%%%........#............................#',
+    '#........%%%%........#............................#',
+    '#....%%%%%%%%........#............................#',
+    '#....%%%%..%%%.........#..........................#',
+    '#....%%%%..%%%.%%%%....#..........................#',
+    '#.......%%%%%%%%%%%....#..........................#',
+    '#.......%%%%%%%%%%%....#..........................#',
+    '#.......%%%%%%%%.......#..........................#',
     '#......................#..........................#',
     '#......................#..........................#',
     '#......................#..........................#',
@@ -87,6 +87,7 @@ class Game {
         var tileType = {
           '.': Empty,
           '#': Wall,
+          '%': Smoke,
 
         }[mapPrototype[y][x]];
         currentRow.push(new tileType(x, y));
@@ -178,7 +179,7 @@ class Game {
     }
     var lightPasses = (x,y) => {
       var tile = this.getTile(x,y);
-      return tile !== undefined && tile.canSeeThrough();
+      return tile.canSeeThrough() || (this.player._x == x && this.player._y == y)
     }
 
     var fov = new ROT.FOV.PreciseShadowcasting(lightPasses);
