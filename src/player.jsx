@@ -183,6 +183,10 @@ class Player extends Entity{
     return "Player";
   }
 
+  hear(path, location, sound) {
+    Game.queueAnimation(new PingAnimation(location));
+  }
+
 }
 
 export default Player;

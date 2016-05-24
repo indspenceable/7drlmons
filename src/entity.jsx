@@ -75,6 +75,10 @@ class Entity {
   canSee(point) {
     return this.visibleTiles[point];
   }
+
+  hear(path, location, sound) {
+
+  }
 }
 
 class Monster extends Entity {

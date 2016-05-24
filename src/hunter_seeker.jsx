@@ -4,7 +4,7 @@ import Point from './point.jsx'
 
 class HunterSeeker extends Entity {
   constructor(x, y) {
-    super("S", "Hunter Seeker", '#f00', '#000');
+    super("é", "Hunter Seeker", '#f00', '#000');
     this.position = Point.at([x, y]);
 
     this.state = 'roam';
@@ -18,6 +18,7 @@ class HunterSeeker extends Entity {
     }
     this.lastSeen = {}
     this.patrols.forEach(p => this.lastSeen[p] = Math.floor(Math.random()*50));
+    this.target = this.position;
   }
 
   see(p) {
@@ -66,8 +67,8 @@ class HunterSeeker extends Entity {
 
   moveAlongPatrol() {
     this.calculateFOV();
-    const target = this.selectTarget();
-    const path = Game.findPathTo(this.position, target, [this, Game.player]);
+    this.setTarget(this.selectTarget());
+    const path = Game.findPathTo(this.position, this.target);
     this.stepOnPath(path);
     this.incrementSeenTimes();
     this.calculateFOV();
@@ -84,10 +85,19 @@ class HunterSeeker extends Entity {
     return false;
   }
 
+  setTarget(targ) {
+    if (! targ.eq(this.target)) {
+      Game.playSound(targ, "foo");
+      // Game.queueAnimation(new PingAnimation(targ));
+      this.target = targ;
+    }
+  }
+
   hunt() {
     this.calculateFOV();
     if ( this.canSeePlayer() ) {
-      const path = Game.findPathTo(this.position, Game.player.position);
+      this.setTarget(Game.player.position);
+      const path = Game.findPathTo(this.position, this.target);
       if (path.length >= 3) {
         this.stepOnPath(path);
       } else {
@@ -109,14 +119,16 @@ class HunterSeeker extends Entity {
   }
 
   draw() {
-    // if (Game.player.canSee(this._x, this._y)) {
+    if (Game.player.canSee(this.position)) {
+      console.log('can see...', this.position)
       super.draw();
-      if (this.state == 'roam') {
-        Game.display.draw(...this.selectTarget(), 'X', '#0f0', '#000');
-      }
-      if (this.state == 'hunt') {
-        Game.display.draw(...this.lastSighting, 'X', '#0f0', '#000');
-      }
+    }
+
+      // Game.display.draw(...this.selectTarget().coords, 'X', '#0f0', '#000');
+    // }
+      // if (this.state == 'hunt') {
+      //   Game.display.draw(...this.lastSighting, 'X', '#0f0', '#000');
+      // }
     // }
   }
 }

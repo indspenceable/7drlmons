@@ -38,10 +38,10 @@ class Game {
   }
 
   // TODO this should be done in the entity itself.
-  findPathTo(startPoint, endPoint, entitiesToIgnore=[]) {
+  findPathTo(startPoint, endPoint, maxDistance=10000) {
     var path = [];
     var passableCallback = (x,y) => {
-      return this.getTile(Point.at([x,y])).isWalkable();
+      return this.getTile(Point.at([x,y])).isWalkable() && Point.at([x,y]).distance(startPoint) <= maxDistance;
     }
     var astar = new ROT.Path.AStar(...endPoint.coords, passableCallback, {topology: 8});
     astar.compute(...startPoint.coords, function(x,y) {
@@ -163,11 +163,10 @@ class Game {
     if (this._animationQueue.length == 0) {
       return callback();
     }
-      console.log("displaying animatinos....");
 
-      this.redrawMap();
-      this._animationQueue.forEach(animation => animation.draw());
-      this._animationQueue = this._animationQueue.filter(animation => !animation.nextFrame());
+    this.redrawMap();
+    this._animationQueue.forEach(animation => animation.draw());
+    this._animationQueue = this._animationQueue.filter(animation => !animation.nextFrame());
 
     setTimeout(()=> {
       if (this._animationQueue.length > 0) {
@@ -178,7 +177,7 @@ class Game {
         // this.engine.unlock();
         callback();
       }
-    }, 20);
+    }, 2);
   }
 
 
@@ -271,6 +270,17 @@ class Game {
     this._clearAndDrawMessageLog();
   }
 
+  // AUDIO
+  playSound(location, sound) {
+    // Sound type unused for now.
+    this.entities.forEach(e => {
+      var path = this.findPathTo(location, e.position, 20);
+      console.log(path);
+      if (path.length < 20) {
+        e.hear(path, location, sound);
+      }
+    });
+  }
 
   // MEMORY
   getMemory(point) {
