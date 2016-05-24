@@ -8,6 +8,75 @@ var EMPTY_DELEGATE = {
   draw: function() {},
 };
 
+
+class AnimationWithFrames {
+  constructor(location, frames) {
+    this.location = location;
+    this.frame = 0;
+    this.positionPatterns=frames;
+  }
+  done() {
+    return this.frame > this.positionPatterns.length-1;
+  }
+  nextFrame() {
+    this.frame += 1;
+    return this.done();
+  }
+  draw() {
+    const [position,...patterns] = this.positionPatterns[this.frame];
+    for (var y = 0; y < patterns.length; y+=1) {
+      for ( var x = 0; x < patterns[y].length; x+=1) {
+        var c = patterns[y][x];
+        if ( c != ' ' ) {
+          console.log(c, position.plus(Point.at([x,y])));
+          Game.display.draw(...position.plus(Point.at([x,y])).coords, c, '#f0f', '#000');
+        }
+      }
+    }
+    // Game.display.drawText(...position.coords, "%c{#0ff}" + pattern)
+  }
+}
+
+class PingAnimation extends AnimationWithFrames {
+  constructor(location) {
+    super(location, [
+      [
+        location,
+        '*'
+      ],
+      [
+        location.plus(Point.at([-1,-1])),
+         ' ^ ',
+         '| |',
+         ' v '
+      ],
+      [
+        location.plus(Point.at([-1,-1])),
+         '/-\\',
+         '| |',
+        '\\-/'
+      ],
+      [
+        location.plus(Point.at([-2,-2])),
+         ' /-\\ ',
+         '/   \\',
+         '|   |',
+        '\\   /',
+        ' \\--/ '
+      ],
+      [
+        location.plus(Point.at([-2,-2])),
+         '/- -\\',
+         '|   |',
+         '     ',
+         '|   |',
+        '\\- -/'
+      ],
+
+    ]);
+  }
+}
+
 class Player extends Entity{
   constructor(x, y) {
     super('@', 'player', '#fff', '#000');
@@ -29,11 +98,14 @@ class Player extends Entity{
 
   act() {
     Game.engine.lock();
-    window.addEventListener("keydown", this);
-    if (this.delay > 0) {
-      this.delay -= 1;
-      this.finishTurn();
-    }
+    Game.displayAnimations(() =>{
+      Game.redrawMap();
+      window.addEventListener("keydown", this);
+      if (this.delay > 0) {
+        this.delay -= 1;
+        this.finishTurn();
+      }
+    })
   }
 
   handleEvent(e) {

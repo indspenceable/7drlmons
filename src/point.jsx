@@ -24,6 +24,9 @@ class Point {
   toString() {
     return "POINT[" + this._x + "," + this._y + "]";
   }
+  distance(o) {
+    return Math.abs(o._x - this._x) + Math.abs(o._y - this._y);
+  }
 }
 export default Point;
 
