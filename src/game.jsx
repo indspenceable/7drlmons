@@ -170,14 +170,12 @@ class Game {
 
     setTimeout(()=> {
       if (this._animationQueue.length > 0) {
-        console.log("More animations!", this._animationQueue);
         this.displayAnimations(callback);
       } else {
-        console.log("done!");
         // this.engine.unlock();
         callback();
       }
-    }, 2);
+    }, 20);
   }
 
 
@@ -275,7 +273,6 @@ class Game {
     // Sound type unused for now.
     this.entities.forEach(e => {
       var path = this.findPathTo(location, e.position, 20);
-      console.log(path);
       if (path.length < 20) {
         e.hear(path, location, sound);
       }

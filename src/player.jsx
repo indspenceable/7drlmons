@@ -10,9 +10,10 @@ var EMPTY_DELEGATE = {
 
 
 class AnimationWithFrames {
-  constructor(location, frames) {
+  constructor(location, frames, color) {
     this.location = location;
     this.frame = 0;
+    this.color = color;
     this.positionPatterns=frames;
   }
   done() {
@@ -29,7 +30,7 @@ class AnimationWithFrames {
         var c = patterns[y][x];
         if ( c != ' ' ) {
           console.log(c, position.plus(Point.at([x,y])));
-          Game.display.draw(...position.plus(Point.at([x,y])).coords, c, '#f0f', '#000');
+          Game.display.draw(...position.plus(Point.at([x,y])).coords, c, this.color, '#000');
         }
       }
     }
@@ -38,7 +39,7 @@ class AnimationWithFrames {
 }
 
 class PingAnimation extends AnimationWithFrames {
-  constructor(location) {
+  constructor(location, color) {
     super(location, [
       [
         location,
@@ -73,7 +74,7 @@ class PingAnimation extends AnimationWithFrames {
         '\\- -/'
       ],
 
-    ]);
+    ], color);
   }
 }
 
@@ -184,9 +185,15 @@ class Player extends Entity{
   }
 
   hear(path, location, sound) {
-    Game.queueAnimation(new PingAnimation(location));
+    switch(sound) {
+    case 'patrol':
+      Game.queueAnimation(new PingAnimation(location, '#f0f'));
+      break;
+    case 'hunt':
+      Game.queueAnimation(new PingAnimation(location, '#f00'));
+      break;
+    }
   }
-
 }
 
 export default Player;

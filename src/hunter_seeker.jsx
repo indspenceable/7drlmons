@@ -62,65 +62,71 @@ class HunterSeeker extends Entity {
 
   // State Machine
   doAction() {
-    this.state = (this[this.state]() || this.state)
+    this.transitionTo(this[this.state+'_transitions']())
+    this[this.state+'_exec']();
+  }
+
+  transitionTo(newState) {
+    if (this.state != newState) {
+      this.state = newState;
+    }
   }
 
   moveAlongPatrol() {
-    this.calculateFOV();
-    this.setTarget(this.selectTarget());
+    this.setTarget(this.selectTarget(), 'patrol');
     const path = Game.findPathTo(this.position, this.target);
     this.stepOnPath(path);
     this.incrementSeenTimes();
-    this.calculateFOV();
   }
 
   canSeePlayer() {
-    for (var i in this.visibleTiles) {
-      // i is a string rep of location
-      if (Game.player.position.coords.toString() == i) {
-        this.lastSighting = Game.player.position;
-        return true;
-      }
-    }
-    return false;
+    this.calculateFOV();
+    return this.visibleTiles[Game.player.position];
   }
 
-  setTarget(targ) {
+  setTarget(targ, sound) {
     if (! targ.eq(this.target)) {
-      Game.playSound(targ, "foo");
+      Game.playSound(targ, sound);
       // Game.queueAnimation(new PingAnimation(targ));
       this.target = targ;
     }
   }
 
-  hunt() {
-    this.calculateFOV();
-    if ( this.canSeePlayer() ) {
-      this.setTarget(Game.player.position);
-      const path = Game.findPathTo(this.position, this.target);
-      if (path.length >= 3) {
-        this.stepOnPath(path);
-      } else {
-        console.log("BLLEEP BLOOOOSPP");
-      }
-      return 'hunt';
+  hunt_exec() {
+    this.setTarget(Game.player.position, 'hunt');
+    const path = Game.findPathTo(this.position, this.target);
+    if (path.length >= 3) {
+      this.stepOnPath(path);
     } else {
-      return this.roam();
+      Game.logMessage("Capture the Hunam!");
     }
   }
 
-  roam() {
-    if ( this.canSeePlayer() ) {
-      return this.hunt();
+  hunt_transitions() {
+    if (! this.canSeePlayer() ) {
+      return 'roam';
     } else {
-      this.moveAlongPatrol();
+      return 'hunt';
+    }
+  }
+
+  roam_exec() {
+    this.moveAlongPatrol();
+  }
+
+  roam_transitions() {
+    if ( this.canSeePlayer() ) {
+      return 'hunt';
+    } else {
       return 'roam';
     }
   }
 
+  hear(path, location, sound) {
+  }
+
   draw() {
     if (Game.player.canSee(this.position)) {
-      console.log('can see...', this.position)
       super.draw();
     }
 
