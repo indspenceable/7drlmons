@@ -122,7 +122,8 @@ class Game {
       }
       return;
     }
-    this.displayAndSetMemory(point, ...this.getTile(point).glyph());
+    const glyph = this.getTile(point).glyph;
+    this.displayAndSetMemory(point, glyph.c, glyph.fg, glyph.bg);
   }
 
   displayAndSetMemory(point, ch, fg, bg) {
