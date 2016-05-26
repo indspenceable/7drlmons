@@ -26,31 +26,70 @@ class StaticGlyph {
 }
 
 class Tile {
-  constructor(glyph) {
-    this._glyph = glyph;
+  constructor(x, y) {
+    this.position = Point.at([x,y]);
+    this._glyph = new StaticGlyph('.', gray(), '#000');
+    this._components = new Set;
   }
-  trigger(){}
-  canSeeThrough(){ return true; }
-  isWalkable(){ return true; }
-  get glyph() { return this._glyph; }
+  trigger(entity){ return this._components.forEach(c => c.trigger ? c.trigger(entity) : null); }
+  canSeeThrough(){ return this._all('canSeeThrough'); }
+  isWalkable(){ return this._all('isWalkable'); }
+  get glyph() { return this._highest_priority('glyph', this._glyph); }
+  attachComponent(component) {
+    if(component.onAttach) {
+      component.onAttach()
+    }
+    component.tile = this;
+    this._components.add(component);
+  }
+  detachComponent(component) {
+    console.log("detaching a component...");
+    this._components.delete(component);
+  }
+
+  /* Private Methods */
+
+  _highest_priority(propertyName, defaultReturnValue) {
+    const component = this._sortedComponentArray().find(c => c[propertyName]);
+    return component ? component[propertyName] : defaultReturnValue;
+  }
+  _any(propertyName, ...args) {
+    return this._sortedComponentArray().filter(c => c[propertyName]).some(c => c[propertyName](...args));
+  }
+  _none(propertyName, ...args) {
+    return !(this._sortedComponentArray().filter(c => c[propertyName]).some(c => c[propertyName](...args)));
+  }
+  _all(propertyName, ...args) {
+    return !(this._sortedComponentArray().filter(c => c[propertyName]).some(c => !c[propertyName](...args)));
+  }
+  _sortedComponentArray() {
+    return Array.from(this._components).sort((l,r) =>{
+      if (l.priority < r.priority) {
+        return -1;
+      } else if (l.priority > r.priority) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
+  }
 }
 
-class Wall extends Tile {
-  constructor(x, y) {
-    super(new StaticGlyph('#', gray(), '#000'));
-    this.position = Point.at([x,y]);
+class WallComponent {
+  constructor() {
+    this.glyph = new StaticGlyph('#', gray(), '#000');
   }
   isWalkable() { return false; }
   canSeeThrough() { return false; }
+  get priority() { return 0; }
 }
 
-class Empty extends Tile {
-  constructor(x, y) {
-    super(new StaticGlyph('.', gray(), '#000'));
-    this.position = Point.at([x,y]);
+class Wall extends Tile {
+  constructor(x,y) {
+    super(x,y);
+    this.attachComponent(new WallComponent);
   }
 }
-
 class SmokeGlyph {
   get c() { return '%'; }
   get fg() { return gray(); }
@@ -58,16 +97,36 @@ class SmokeGlyph {
 }
 
 class Smoke extends Tile {
-  constructor(x, y) {
-    super(new SmokeGlyph());
-    this.position = Point.at([x,y]);
+  constructor(x,y) {
+    super(x,y);
+    this.attachComponent(new SmokeComponent);
+    console.log("Shouldn't be able to see through...", this.canSeeThrough());
   }
-
-  canSeeThrough() { return false }
 }
 
-module.exports = {
+class SmokeComponent {
+  constructor() {
+    this.glyph = new SmokeGlyph;
+    this.timeOut = 0;
+  }
+  canSeeThrough() { return false }
+  get priority() { return 10; }
+  onAttach() {
+    Game.scheduler.add(this, true);
+  }
+  act() {
+    this.timeOut += 1;
+    if (this.timeOut>10) {
+      Game.scheduler.remove(this);
+      this.tile.detachComponent(this);
+    }
+  }
+}
+
+var Empty = Tile;
+export {
   Wall,
   Empty,
   Smoke,
+  StaticGlyph,
 }
