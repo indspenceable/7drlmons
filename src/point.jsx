@@ -21,6 +21,9 @@ class Point {
   plus(o) {
     return Point.at([this._x + o._x, this._y + o._y]);
   }
+  offset(x,y) {
+    return Point.at([this._x + x, this._y + y]);
+  }
   toString() {
     return "POINT[" + this._x + "," + this._y + "]";
   }

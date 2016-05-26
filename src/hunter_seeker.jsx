@@ -4,7 +4,7 @@ import Point from './point.jsx'
 
 class HunterSeeker extends Entity {
   constructor(x, y) {
-    super("é", "Hunter Seeker", '#f00', '#000');
+    super("H", "Hunter Seeker", '#f00', '#000');
     this.position = Point.at([x, y]);
 
     this.state = 'roam';
@@ -81,7 +81,7 @@ class HunterSeeker extends Entity {
 
   canSeePlayer() {
     this.calculateFOV();
-    return this.visibleTiles[Game.player.position];
+    return this.visibleTiles.has(Game.player.position);
   }
 
   setTarget(targ, sound) {
@@ -120,9 +120,6 @@ class HunterSeeker extends Entity {
     } else {
       return 'roam';
     }
-  }
-
-  hear(path, location, sound) {
   }
 
   draw() {

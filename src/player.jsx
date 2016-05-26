@@ -184,14 +184,17 @@ class Player extends Entity{
     return "Player";
   }
 
-  hear(path, location, sound) {
-    switch(sound) {
-    case 'patrol':
-      Game.queueAnimation(new PingAnimation(location, '#f0f'));
-      break;
-    case 'hunt':
-      Game.queueAnimation(new PingAnimation(location, '#f00'));
-      break;
+  hear(location, sound) {
+    var path = Game.findPathTo(location, this.position, 20);
+    if (path && path.length > 0 && path.length < 20) {
+      switch(sound) {
+      case 'patrol':
+        Game.queueAnimation(new PingAnimation(location, '#f0f'));
+        break;
+      case 'hunt':
+        Game.queueAnimation(new PingAnimation(location, '#f00'));
+        break;
+      }
     }
   }
 }

@@ -272,10 +272,10 @@ class Game {
   playSound(location, sound) {
     // Sound type unused for now.
     this.entities.forEach(e => {
-      var path = this.findPathTo(location, e.position, 20);
-      if (path.length < 20) {
-        e.hear(path, location, sound);
-      }
+      // var path = this.findPathTo(location, e.position, 20);
+      // if (path.length < 20) {
+        e.hear(location, sound);
+      // }
     });
   }
 

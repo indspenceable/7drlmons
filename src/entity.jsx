@@ -8,7 +8,7 @@ class Entity {
     this.fg = fg;
     this.bg = bg;
 
-    this.visibleTiles = {}
+    this.visibleTiles = new Set;
   }
 
   getName() {
@@ -57,7 +57,7 @@ class Entity {
     }
 
     const fovCalculator = new ROT.FOV.PreciseShadowcasting(canSeeThroughCallback);
-    this.visibleTiles = {};
+    this.visibleTiles.clear();
     this.startFOV();
     fovCalculator.compute(...this.position.coords, visionRadius, (x, y, r, canSee) => {
       if (withinRangeCallback(x,y)) {
@@ -68,15 +68,15 @@ class Entity {
 
   startFOV() {}
   see(p) {
-    this.visibleTiles[p] = true;
+    this.visibleTiles.add(p);
   }
 
   // This relies on calling calculateFOV()
   canSee(point) {
-    return this.visibleTiles[point];
+    return this.visibleTiles.has(point);
   }
 
-  hear(path, location, sound) {
+  hear(location, sound) {
 
   }
 }
