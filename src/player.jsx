@@ -84,6 +84,8 @@ class Player extends Entity{
     this.position = Point.at([x, y]);
     this.delay = 0;
     this.delegates = [];
+
+    this.sounds = new Map();
   }
 
   _currentDelegate() {
@@ -161,8 +163,39 @@ class Player extends Entity{
   //   }
   // }
 
+  soundColor(originalColor, age) {
+    let pct = (age/50.0);
+    if (pct > 1)
+      pct = 1;
+
+    let colorArray = ROT.Color.fromString(originalColor);
+    colorArray = ROT.Color.interpolate(colorArray, [0,0,0], pct);
+    return ROT.Color.toRGB(colorArray);
+  }
+
+  drawSounds() {
+    this.sounds.forEach((value, key) => {
+      const [sound, age] = value;
+      switch(sound) {
+        case 'patrol':
+          Game.display.draw(...key.coords, '?', '#000', this.soundColor("#0f0", age));
+          break;
+        case 'hunt':
+          Game.display.draw(...key.coords, '?', '#000', this.soundColor("#f00", age));
+          break;
+      }
+    })
+  }
+  see(l) {
+    super.see(l);
+    if (this.sounds.has(l) && this.sounds.get(l)[1] > 0) {
+      this.sounds.delete(l);
+    }
+  }
+
   draw() {
     super.draw();
+    this.drawSounds();
     if (this._currentDelegate() !== undefined) {
       this._currentDelegate().draw(this);
     }
@@ -172,6 +205,7 @@ class Player extends Entity{
     Game._drawUI();
     this.delegates = [];
     window.removeEventListener("keydown", this);
+    this.sounds.forEach((value,key) => value[1] += 1);
     Game.redrawMap();
     Game.engine.unlock();
   }
@@ -189,10 +223,12 @@ class Player extends Entity{
     if (path && path.length > 0 && path.length < 20) {
       switch(sound) {
       case 'patrol':
-        Game.queueAnimation(new PingAnimation(location, '#f0f'));
+        // Game.queueAnimation(new PingAnimation(location, '#f0f'));
+        this.sounds.set(location, [sound, 0]);
         break;
       case 'hunt':
-        Game.queueAnimation(new PingAnimation(location, '#f00'));
+        // Game.queueAnimation(new PingAnimation(location, '#f00'));
+        this.sounds.set(location, [sound, 0]);
         break;
       }
     }
