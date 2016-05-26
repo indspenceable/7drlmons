@@ -9,6 +9,7 @@ class Entity {
     this.bg = bg;
 
     this.visibleTiles = new Set;
+    this.delay = 0;
   }
 
   getName() {
