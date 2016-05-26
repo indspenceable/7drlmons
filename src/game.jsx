@@ -2,6 +2,8 @@ import {Empty, Wall, Smoke} from './tile.jsx';
 import Player from './player.jsx'
 import {bresenhem, validConnection} from './util.jsx';
 import HunterSeeker from './hunter_seeker.jsx';
+import SandWorm from './sand_worm.jsx';
+import Spider from './spider.jsx';
 import Point from './point.jsx'
 
 class Game {
@@ -100,8 +102,9 @@ class Game {
     }
     this.player = new Player(5,5);
     this._registerEntity(this.player)
-    this._registerEntity(new HunterSeeker(20, 5));
-    this._registerEntity(new HunterSeeker(40, 5));
+    this._registerEntity(new SandWorm(40, 5));
+    this._registerEntity(new Spider(41, 5));
+    this._registerEntity(new HunterSeeker(42, 5));
   }
 
   _registerEntity(entity) {
@@ -175,7 +178,7 @@ class Game {
         // this.engine.unlock();
         callback();
       }
-    }, 20);
+    }, 0);
   }
 
 
