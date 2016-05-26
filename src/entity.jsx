@@ -44,13 +44,11 @@ class Entity {
   }
 
 
-  calculateFOV() {
-    const visionRadius = 6;
-
+  addFOVToVisibleTiles(pos, visionRadius) {
     const withinRangeCallback = (x,y) => {
       // TODO make this a method on Point
-      const dx = (this.position._x - x);
-      const dy = (this.position._y - y);
+      const dx = (pos._x - x);
+      const dy = (pos._y - y);
       return (dx*dx) + (dy*dy) < (visionRadius*visionRadius);
     }
     const canSeeThroughCallback = (x,y) => {
@@ -58,21 +56,18 @@ class Entity {
     }
 
     const fovCalculator = new ROT.FOV.PreciseShadowcasting(canSeeThroughCallback);
-    this.visibleTiles.clear();
-    this.startFOV();
-    fovCalculator.compute(...this.position.coords, visionRadius, (x, y, r, canSee) => {
+    fovCalculator.compute(...pos.coords, visionRadius, (x, y, r, canSee) => {
       if (withinRangeCallback(x,y)) {
         this.see(Point.at([x,y]));
       }
     });
   }
 
-  startFOV() {}
   see(p) {
     this.visibleTiles.add(p);
   }
 
-  // This relies on calling calculateFOV()
+  // This relies on calling addFOVToVisibleTiles()
   canSee(point) {
     return this.visibleTiles.has(point);
   }

@@ -80,7 +80,8 @@ class HunterSeeker extends Entity {
   }
 
   canSeePlayer() {
-    this.calculateFOV();
+    this.visibleTiles.clear();
+    this.addFOVToVisibleTiles(this.position, 6);
     return this.visibleTiles.has(Game.player.position);
   }
 
