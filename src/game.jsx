@@ -1,10 +1,11 @@
-import {Empty, Wall, Smoke} from './tile.jsx';
+import {Empty, Wall, Smoke, TorchTile} from './tile.jsx';
 import Player from './player.jsx'
 import {bresenhem, validConnection} from './util.jsx';
 import HunterSeeker from './hunter_seeker.jsx';
 import SandWorm from './sand_worm.jsx';
 import Spider from './spider.jsx';
 import Point from './point.jsx'
+import Lighting from './lighting.jsx'
 
 class Game {
   constructor() {
@@ -19,6 +20,7 @@ class Game {
     this._memory = {}
 
     this._animationQueue = [];
+    this.lighting = new Lighting;
   }
 
   init() {
@@ -67,18 +69,18 @@ class Game {
     var mapPrototype = [
     '###################################################',
     '#....................#............................#',
+    '#.^^.................#............................#',
+    '#.^^.................#............................#',
+    '#....................#....................###.....#',
+    '#....................#.....................##.....#',
+    '#....................#.....................^#.....#',
+    '#....................#.....................##.....#',
+    '#....................#....................###.....#',
     '#....................#............................#',
-    '#....................#............................#',
-    '#.....%..............#............................#',
-    '#.....%..............#............................#',
-    '#.....%..............#..............%.%...........#',
-    '#.....%..............#..............%.%...........#',
-    '#....................#..............%.%...........#',
-    '#....................#..............%.%...........#',
-    '#......................#............%.%...........#',
-    '#..........%...........#............%.%...........#',
-    '#......................#............%.%...........#',
-    '#......................#............%.%...........#',
+    '#......................#..........................#',
+    '#..........%...........#..........................#',
+    '#......................#..........................#',
+    '#......................#..........................#',
     '#......................#..........................#',
     '#......................#..........................#',
     '#......................#..........................#',
@@ -95,16 +97,21 @@ class Game {
           '.': Empty,
           '#': Wall,
           '%': Smoke,
-
+          '^': TorchTile,
         }[mapPrototype[y][x]];
         currentRow.push(new tileType(x, y));
       }
     }
     this.player = new Player(5,5);
     this._registerEntity(this.player)
-    this._registerEntity(new SandWorm(40, 5));
-    this._registerEntity(new Spider(41, 5));
-    this._registerEntity(new HunterSeeker(42, 5));
+    // this._registerEntity(new SandWorm(40, 5));
+    // this._registerEntity(new Spider(41, 5));
+    // this._registerEntity(new HunterSeeker(42, 5));
+    // this.lighting.registerLight({position:Point.at([2,2]), 200);
+    this.lighting.registerLight(this.player, [20,100,70]);
+    console.log("Done making map! Enabling lighting");
+    // this.lighting.enable();
+    this.lighting.dirty();
   }
 
   _registerEntity(entity) {
@@ -123,7 +130,17 @@ class Game {
       return;
     }
     const glyph = this.getTile(point).glyph;
-    this.displayAndSetMemory(point, glyph.c, glyph.fg, glyph.bg);
+    var color = this.multColor(glyph.fg, this.lighting.lightAt(point))
+    this.displayAndSetMemory(point, glyph.c, color, glyph.bg);
+  }
+
+  multColor(c1,c2) {
+    return ROT.Color.toRGB(
+      ROT.Color.add(
+        ROT.Color.multiply(ROT.Color.fromString(c1), c2),
+        [0,30,10]
+      )
+    )
   }
 
   displayAndSetMemory(point, ch, fg, bg) {
@@ -154,7 +171,9 @@ class Game {
 
   redrawMap() {
     this.player.visibleTiles.clear();
-    this.player.addFOVToVisibleTiles(this.player.position, 10);
+    // this.lighting.calculate();
+    this.player.addFOVToVisibleTiles(this.player.position, 5);
+      // {confirmVision: e => (this.lighting.lightAt(e) > 1)});
     this._drawWholeMap();
     this.entities.forEach(e => e.draw());
     // this.player.draw();
@@ -289,11 +308,19 @@ class Game {
     return this._memory[point];
   }
 
+  toGray(hexColor) {
+    const colorArray = ROT.Color.fromString(hexColor);
+    const intensity = Math.floor(0.2126 * colorArray[0]) +
+                      Math.floor(0.7152 * colorArray[1]) +
+                      Math.floor(0.0722 * colorArray[2]);
+    return ROT.Color.toRGB([intensity, intensity, intensity])
+  }
+
   setMemory(point, ch, fg, bg) {
     if (ch != ' ') {
-      this._memory[point] = [ch, '#555', '#222'];
+      this._memory[point] = [ch, this.toGray(fg), this.toGray(bg)];
     } else {
-      this._memory[point] = [ch, '#222', '#555'];
+      this._memory[point] = [ch, '#000', this.toGray(fg)];
     }
   }
 };

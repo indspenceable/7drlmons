@@ -27,3 +27,5 @@ and then open a browser to `localhost:8000`
   a) Smoke
   b) Noise
   c) Triggering
+4) Map improvements:
+  a) Scrolling Map (larger than viewport) - Single level for full game? Probably.

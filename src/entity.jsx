@@ -43,8 +43,11 @@ class Entity {
     }
   }
 
+  addFOVToVisibleTiles(pos, visionRadius, overrideParams={}) {
+    const params = Object.assign({
+      confirmVision: (e) => true,
+    }, overrideParams);
 
-  addFOVToVisibleTiles(pos, visionRadius) {
     const withinRangeCallback = (x,y) => {
       // TODO make this a method on Point
       const dx = (pos._x - x);
@@ -57,7 +60,7 @@ class Entity {
 
     const fovCalculator = new ROT.FOV.PreciseShadowcasting(canSeeThroughCallback);
     fovCalculator.compute(...pos.coords, visionRadius, (x, y, r, canSee) => {
-      if (withinRangeCallback(x,y)) {
+      if (withinRangeCallback(x,y) && params.confirmVision(Point.at([x,y]))) {
         this.see(Point.at([x,y]));
       }
     });

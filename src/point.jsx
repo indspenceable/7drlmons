@@ -33,3 +33,4 @@ class Point {
 }
 export default Point;
 
+window.Point = Point;

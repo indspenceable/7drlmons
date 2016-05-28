@@ -147,6 +147,11 @@ class Player extends Entity{
     Game.redrawMap();
   }
 
+  // moveInstantlyToAndTrigger(...args) {
+  //   super.moveInstantlyToAndTrigger(...args);
+  //   Game.lighting.dirty();
+  // }
+
   // takeHit(damage, type) {
   //   var rtn = Entity.prototype.takeHit.call(this._currentMon, damage, type);
   //   Game._drawUI();
