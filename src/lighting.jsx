@@ -33,7 +33,7 @@ class Lighting {
     // const reflectivityCallback = (x, y) => canSeeThrough(x,y) ? 0.3 : 0;
     const fovCalculator = new ROT.FOV.PreciseShadowcasting(canSeeThroughCallback);
     const reflectivityCallback = (x, y) => (Game.getTile(Point.at([x,y])).canSeeThrough() ? 0.00001 : 0);
-    const lighting = new ROT.Lighting(reflectivityCallback, {passes: 1, range: 15})
+    const lighting = new ROT.Lighting(reflectivityCallback, {passes: 1, range: 30})
     lighting.setFOV(fovCalculator);
     this.lights.forEach((color, key) => {
       return lighting.setLight(...key.position.coords, color)

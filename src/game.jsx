@@ -1,6 +1,6 @@
 import {Empty, Wall, Smoke, TorchTile} from './tile.jsx';
 import Player from './player.jsx'
-import {bresenhem, validConnection} from './util.jsx';
+import { toGray } from './util.jsx';
 import HunterSeeker from './hunter_seeker.jsx';
 import SandWorm from './sand_worm.jsx';
 import Spider from './spider.jsx';
@@ -308,19 +308,11 @@ class Game {
     return this._memory[point];
   }
 
-  toGray(hexColor) {
-    const colorArray = ROT.Color.fromString(hexColor);
-    const intensity = Math.floor(0.2126 * colorArray[0]) +
-                      Math.floor(0.7152 * colorArray[1]) +
-                      Math.floor(0.0722 * colorArray[2]);
-    return ROT.Color.toRGB([intensity, intensity, intensity])
-  }
-
   setMemory(point, ch, fg, bg) {
     if (ch != ' ') {
-      this._memory[point] = [ch, this.toGray(fg), this.toGray(bg)];
+      this._memory[point] = [ch, toGray(fg), toGray(bg)];
     } else {
-      this._memory[point] = [ch, '#000', this.toGray(fg)];
+      this._memory[point] = [ch, '#000', toGray(fg)];
     }
   }
 };

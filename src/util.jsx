@@ -27,8 +27,19 @@ function pointOfError(line) {
   return line.reverse().find(p => !Game.getTile(p).isWalkable());
 }
 
+
+function toGray(hexColor) {
+  const colorArray = ROT.Color.fromString(hexColor);
+  const intensity = Math.floor(0.2126 * colorArray[0]) +
+                    Math.floor(0.7152 * colorArray[1]) +
+                    Math.floor(0.0722 * colorArray[2]);
+  return ROT.Color.toRGB([intensity, intensity, intensity])
+}
+
+
 export  {
   bresenhem,
   validConnection,
   pointOfError,
+  toGray,
 }
