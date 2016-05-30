@@ -106,7 +106,7 @@ class Game {
     this._registerEntity(this.player)
     // this._registerEntity(new SandWorm(40, 5));
     // this._registerEntity(new Spider(41, 5));
-    // this._registerEntity(new HunterSeeker(42, 5));
+    this._registerEntity(new HunterSeeker(42, 5));
     // this.lighting.registerLight({position:Point.at([2,2]), 200);
     this.lighting.registerLight(this.player, [20,100,70]);
     console.log("Done making map! Enabling lighting");
@@ -134,15 +134,6 @@ class Game {
     this.displayAndSetMemory(point, glyph.c, color, glyph.bg);
   }
 
-  multColor(c1,c2) {
-    return ROT.Color.toRGB(
-      ROT.Color.add(
-        ROT.Color.multiply(ROT.Color.fromString(c1), c2),
-        [0,30,10]
-      )
-    )
-  }
-
   displayAndSetMemory(point, ch, fg, bg) {
     this.setMemory(point, ch, fg, bg)
     this.display.draw(...point.coords, ch||' ', fg, bg);
@@ -164,7 +155,8 @@ class Game {
   _drawWholeMap() {
     for (var y = 0; y < this.map.length; y++) {
       for (var x = 0; x < this.map[0].length; x++) {
-        this.drawMapTileAt(Point.at([x,y]));
+        // this.drawMapTileAt(Point.at([x,y]));
+        this.player.drawMapTileAt(Point.at([x,y]));
       }
     }
   }
@@ -175,7 +167,7 @@ class Game {
     this.player.addFOVToVisibleTiles(this.player.position, 5);
       // {confirmVision: e => (this.lighting.lightAt(e) > 1)});
     this._drawWholeMap();
-    this.entities.forEach(e => e.draw());
+    // this.entities.forEach(e => e.draw());
     // this.player.draw();
   }
 
@@ -301,19 +293,6 @@ class Game {
         e.hear(location, sound);
       // }
     });
-  }
-
-  // MEMORY
-  getMemory(point) {
-    return this._memory[point];
-  }
-
-  setMemory(point, ch, fg, bg) {
-    if (ch != ' ') {
-      this._memory[point] = [ch, toGray(fg), toGray(bg)];
-    } else {
-      this._memory[point] = [ch, '#000', toGray(fg)];
-    }
   }
 };
 

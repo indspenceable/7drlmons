@@ -1,7 +1,8 @@
 import Entity from './entity.jsx';
 import Game from './game.jsx';
 import Input from './input.jsx';
-import Point from './point.jsx'
+import Point from './point.jsx';
+import { multColor, toGray }  from './util.jsx';
 
 var EMPTY_DELEGATE = {
   handleEvent: function() {},
@@ -29,7 +30,6 @@ class AnimationWithFrames {
       for ( var x = 0; x < patterns[y].length; x+=1) {
         var c = patterns[y][x];
         if ( c != ' ' ) {
-          console.log(c, position.plus(Point.at([x,y])));
           Game.display.draw(...position.plus(Point.at([x,y])).coords, c, this.color, '#000');
         }
       }
@@ -85,7 +85,8 @@ class Player extends Entity{
     this.delay = 0;
     this.delegates = [];
 
-    this.sounds = new Map();
+    this.audioMemory = new Map();
+    this.visualMemory = new Map();
   }
 
   _currentDelegate() {
@@ -134,7 +135,7 @@ class Player extends Entity{
     const dir = Point.at(ROT.DIRS[8][dirIndex]);
     /* is there a free space? */
     const dest = this.position.plus(dir);
-    var monster = Game.monsterAt(dest);
+    const monster = Game.monsterAt(dest);
 
     if (Game.getTile(dest).isWalkable()) {
       this.moveInstantlyToAndTrigger(dest);
@@ -178,39 +179,102 @@ class Player extends Entity{
     return ROT.Color.toRGB(colorArray);
   }
 
-  drawSounds() {
-    this.sounds.forEach((value, key) => {
-      const [sound, age] = value;
+  drawMapTileAudioAt(point) {
+    if (this.audioMemory.has(point)) {
+      this.drawSoundGivenSoundData(point, this.audioMemory.get(point));
+      return true;
+    }
+    return false;
+  }
+
+  drawSoundGivenSoundData(point, soundData) {
+    // this.audioMemory.forEach((soundData, point) => {
+      const [sound, age] = soundData;
       switch(sound) {
         case 'patrol':
-          Game.display.draw(...key.coords, '?', '#000', this.soundColor("#0f0", age));
+          Game.display.draw(...point.coords, '?', '#000', this.soundColor("#0f0", age));
           break;
         case 'hunt':
-          Game.display.draw(...key.coords, '?', '#000', this.soundColor("#f00", age));
+          Game.display.draw(...point.coords, '?', '#000', this.soundColor("#f00", age));
           break;
       }
-    })
+    // })
   }
-  see(l) {
-    super.see(l);
-    if (this.sounds.has(l) && this.sounds.get(l)[1] > 0) {
-      this.sounds.delete(l);
+
+  see(point) {
+    super.see(point);
+    if (this.audioMemory.has(point) && this.audioMemory.get(point)[1] > 0) {
+      this.audioMemory.delete(point);
+    }
+
+    const monster = Game.monsterAt(point);
+    let glyph = null;
+    if (monster) {
+      glyph = monster.asVisualGlyph();
+    } else {
+      glyph = Game.getTile(point).glyph;
+    }
+    var color = multColor(glyph.fg, Game.lighting.lightAt(point))
+    // If its me, though, automatically use white.
+    if (monster == this) {
+      color = '#ccc';
+    }
+    this.visualMemory.set(point, {c: glyph.c, fg:color, bg:glyph.bg});
+    // this.displayAndSetMemory(point, glyph.c, color, glyph.bg);
+
+  }
+
+  // draw() {
+  //   super.draw();
+  //   this.drawSounds();
+  //   if (this._currentDelegate() !== undefined) {
+  //     this._currentDelegate().draw(this);
+  //   }
+  // }
+
+  grayScaleGlyphFromMemory(point) {
+    const glyph = this.visualMemory.get(point);
+    if ( glyph == undefined ) {
+      return { c: ' ', fg: '#000', bg: '#000' }
+    } else if (glyph.c != ' ') {
+      return {c: glyph.c, fg: toGray(glyph.fg), bg: toGray(glyph.bg)};
+    } else {
+      return {c: glyph.c, fg:'#000', bg: toGray(glyph.fg)};
     }
   }
 
-  draw() {
-    super.draw();
-    this.drawSounds();
-    if (this._currentDelegate() !== undefined) {
-      this._currentDelegate().draw(this);
+  drawMapTileAt(point) {
+    if (!this.disableAudio && this.drawMapTileAudioAt(point)) {
+      return;
+    } else if (!this.disableVision && this.drawMapTileVisualAt(point)) {
+      return;
+    } else {
+      this.drawMapTileTouchAt(point);
     }
+  }
+
+  drawMapTileVisualAt(point) {
+    let glyph = null;
+    if (this.canSee(point)) {
+      glyph = this.visualMemory.get(point)
+      if (glyph == undefined) {
+        // Should never be drawing a tile we can see without it being in our
+        // memory;
+        this.fail();
+      }
+    } else {
+      glyph = this.grayScaleGlyphFromMemory(point)
+    }
+
+    Game.display.draw(...point.coords, glyph.c, glyph.fg, glyph.bg);
+    return true;
   }
 
   finishTurn() {
     Game._drawUI();
     this.delegates = [];
     window.removeEventListener("keydown", this);
-    this.sounds.forEach((value,key) => value[1] += 1);
+    this.audioMemory.forEach((value,key) => value[1] += 1);
     Game.redrawMap();
     Game.engine.unlock();
   }
@@ -229,11 +293,11 @@ class Player extends Entity{
       switch(sound) {
       case 'patrol':
         // Game.queueAnimation(new PingAnimation(location, '#f0f'));
-        this.sounds.set(location, [sound, 0]);
+        this.audioMemory.set(location, [sound, 0]);
         break;
       case 'hunt':
         // Game.queueAnimation(new PingAnimation(location, '#f00'));
-        this.sounds.set(location, [sound, 0]);
+        this.audioMemory.set(location, [sound, 0]);
         break;
       }
     }

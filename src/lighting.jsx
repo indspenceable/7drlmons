@@ -19,13 +19,13 @@ class Lighting {
   }
   lightAt(point) {
     if (this._dirty) {
-      console.log("Dirty!");
       this._dirty = false;
       this.calculate();
     }
     return this.pointData.get(point) || [0,0,0];
   }
   calculate() {
+    console.log("Calculating light...");
     this.pointData.clear();
     const canSeeThroughCallback = (x,y) => {
       return Game.getTile(Point.at([x,y])).canSeeThrough();

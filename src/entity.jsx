@@ -3,6 +3,11 @@ import Point from './point.jsx'
 
 class Entity {
   constructor(c, name, fg, bg) {
+    this.glyph = {
+      c: c,
+      fg: fg,
+      bg: bg,
+    }
     this.c = c;
     this._name = name;
     this.fg = fg;
@@ -27,6 +32,10 @@ class Entity {
 
   draw() {
     Game.displayAndSetMemory(this.position, this.c, this.fg, this.bg);
+  }
+
+  asVisualGlyph() {
+    return this.glyph
   }
 
   act() {

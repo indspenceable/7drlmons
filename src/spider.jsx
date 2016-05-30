@@ -7,7 +7,7 @@ class WebTrap {
   constructor(mySpider, position) {
     this.spider = mySpider;
     this.position = position;
-    this.glyph = new StaticGlyph('%', '#000', '#373');
+    this.glyph = new StaticGlyph('%', '#987', '#789');
   }
   trigger(entity) {
     if (entity != this.player) {

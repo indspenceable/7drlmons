@@ -133,13 +133,11 @@ class SmokeComponent {
     Game.lighting.dirty();
   }
   detach() {
-    console.log("BWOP");
     Game.scheduler.remove(this);
     Game.lighting.dirty();
   }
   act() {
     this.timeOut += 1;
-    console.log(this.timeOut);
     if (this.timeOut>30) {
       this.tile.detachComponent(this);
       return;

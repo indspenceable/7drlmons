@@ -33,7 +33,16 @@ function toGray(hexColor) {
   const intensity = Math.floor(0.2126 * colorArray[0]) +
                     Math.floor(0.7152 * colorArray[1]) +
                     Math.floor(0.0722 * colorArray[2]);
-  return ROT.Color.toRGB([intensity, intensity, intensity])
+  return ROT.Color.toHex([intensity, intensity, intensity])
+}
+
+function multColor(c1,c2) {
+  return ROT.Color.toHex(
+    ROT.Color.add(
+      ROT.Color.multiply(ROT.Color.fromString(c1), c2),
+      [0,30,10]
+    )
+  )
 }
 
 
@@ -42,4 +51,5 @@ export  {
   validConnection,
   pointOfError,
   toGray,
+  multColor,
 }

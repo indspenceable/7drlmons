@@ -87,7 +87,7 @@ class HunterSeeker extends Entity {
 
   setTarget(targ, sound) {
     if (! targ.eq(this.target)) {
-      Game.playSound(targ, sound);
+      // Game.playSound(targ, sound);
       // Game.queueAnimation(new PingAnimation(targ));
       this.target = targ;
     }
@@ -101,6 +101,7 @@ class HunterSeeker extends Entity {
     } else {
       Game.logMessage("Capture the Hunam!");
     }
+    Game.playSound(this.position, 'hunt');
   }
 
   hunt_transitions() {
@@ -113,6 +114,7 @@ class HunterSeeker extends Entity {
 
   roam_exec() {
     this.moveAlongPatrol();
+    Game.playSound(this.position, 'patrol');
   }
 
   roam_transitions() {
